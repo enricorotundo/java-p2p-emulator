@@ -51,7 +51,7 @@ public final class ClientFrame extends AbstractBasicFrame {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
 	 */
@@ -156,7 +156,7 @@ public final class ClientFrame extends AbstractBasicFrame {
 
 		final JScrollPane areaScrollPane = new JScrollPane(downloadQueueList);
 		areaScrollPane
-				.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		areaScrollPane.setPreferredSize(new Dimension(280, 250));
 		areaScrollPane.setVisible(true);
 
@@ -187,7 +187,7 @@ public final class ClientFrame extends AbstractBasicFrame {
 	/**
 	 * <code>setTopSubPanels</code> sets in the top panel a paneled JTextArea
 	 * and JButton, and an unpaneled JButton to "disconnect" the client.
-	 * 
+	 *
 	 * @throws ParseException
 	 */
 	@Override
@@ -195,13 +195,13 @@ public final class ClientFrame extends AbstractBasicFrame {
 		fileSearchButton = new JButton("Search");
 		fileSearchButton.setActionCommand("search");
 		fileSearchButton
-				.setToolTipText("Start searching the file in the network.");
+		.setToolTipText("Start searching the file in the network.");
 		fileSearchButton.addActionListener(this);
 
 		fileSearchTextField = new JFormattedTextField(ResourceName.getMask());
 		fileSearchTextField.setEditable(true);
 		fileSearchTextField.setColumns(2);
-		// fileSearchTextField.addPropertyChangeListener("search", this);
+		fileSearchTextField.setToolTipText("File name is like \"A 3\"");
 
 		searchFilePanel = new JPanel();
 		searchFilePanel.setOpaque(true);
@@ -226,7 +226,7 @@ public final class ClientFrame extends AbstractBasicFrame {
 
 		final JScrollPane areaScrollPane = new JScrollPane(completeFilesList);
 		areaScrollPane
-				.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		areaScrollPane.setPreferredSize(new Dimension(280, 250));
 		areaScrollPane.setVisible(true);
 
