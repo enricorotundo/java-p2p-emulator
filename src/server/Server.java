@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package server;
 
@@ -10,7 +10,7 @@ package server;
 public final class Server implements ServerInterface {
 
 	/**
-	 * 
+	 *
 	 */
 	public Server() {
 		// TODO Auto-generated constructor stub

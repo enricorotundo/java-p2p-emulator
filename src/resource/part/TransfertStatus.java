@@ -10,13 +10,13 @@ package resource.part;
  * @author erotundo
  */
 public enum TransfertStatus {
-	
+
 	/** The Completed. */
-	Completed, 
- /** The Failed. */
- Failed, 
- /** The Downloading. */
- Downloading, 
- /** The Not started. */
- NotStarted
-	}
+	Completed,
+	/** The Failed. */
+	Failed,
+	/** The Downloading. */
+	Downloading,
+	/** The Not started. */
+	NotStarted
+}

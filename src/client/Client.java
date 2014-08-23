@@ -12,7 +12,6 @@ import javax.print.attribute.standard.Fidelity;
 import resource.Resource;
 import resource.part.ResourcePart;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class Client.
  *
@@ -62,6 +61,7 @@ public final class Client implements ClientInterface {
 		clientFrame.appendLogEntry("Creating client... ");
 		clientFrame.appendLogEntry("Starting creating resources...");
 		loadRandomResources();
+		setMyResources(loadRandomResources());
 		clientFrame.appendLogEntry("Resources created.");
 		return clientFrame;
 	}
@@ -69,25 +69,17 @@ public final class Client implements ClientInterface {
 	/**
 	 * Load random resources.
 	 */
-	private void loadRandomResources() {
-		myResources = Resource.createRandomResourceVector();
+	private static Vector<Resource> loadRandomResources() {
+		return Resource.createRandomResourceVector();
 	}
 	
 	
-	/**
-	 * Gets the my gui client frame.
-	 *
-	 * @return the myGuiClientFrame
-	 */
+	@Override
 	public ClientFrame getMyGuiClientFrame() {
 		return myGuiClientFrame;
 	}
 
-	/**
-	 * Sets the my gui client frame.
-	 *
-	 * @param myGuiClientFrame the myGuiClientFrame to set
-	 */
+	@Override
 	public void setMyGuiClientFrame(final ClientFrame myGuiClientFrame) {
 		this.myGuiClientFrame = myGuiClientFrame;
 	}
@@ -164,20 +156,12 @@ public final class Client implements ClientInterface {
 		return paramResquestedResource;//stub
 	}
 	
-	/**
-	 * Gets the my download capaciy.
-	 *
-	 * @return the myDownloadCapaciy
-	 */
+	@Override
 	public Integer getMyDownloadCapaciy() {
 		return myDownloadCapaciy;
 	}
 
-	/**
-	 * Sets the my download capaciy.
-	 *
-	 * @param myDownloadCapaciy the myDownloadCapaciy to set
-	 */
+	@Override
 	public void setMyDownloadCapaciy(final Integer myDownloadCapaciy) {
 		this.myDownloadCapaciy = myDownloadCapaciy;
 	}
@@ -191,20 +175,12 @@ public final class Client implements ClientInterface {
 		return connectionUpBoolean;
 	}
 
-	/**
-	 * Gets the my downloading parts.
-	 *
-	 * @return the myDownloadingParts
-	 */
+	@Override
 	public Vector<ResourcePart> getMyDownloadingParts() {
 		return myDownloadingParts;
 	}
 
-	/**
-	 * Sets the my downloading parts.
-	 *
-	 * @param myDownloadingParts the myDownloadingParts to set
-	 */
+	@Override
 	public void setMyDownloadingParts(final Vector<ResourcePart> myDownloadingParts) {
 		this.myDownloadingParts = myDownloadingParts;
 	}

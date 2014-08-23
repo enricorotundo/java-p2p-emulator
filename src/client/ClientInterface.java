@@ -3,8 +3,12 @@
  */
 package client;
 
+import gui.ClientFrame;
+
 import java.util.Vector;
+
 import resource.Resource;
+import resource.part.ResourcePart;
 
 /**
  * @author erotundo
@@ -22,17 +26,7 @@ public interface ClientInterface {
 	 * 
 	 * @param myResources
 	 */
-	public void setMyResources(Vector<Resource> myResources);
-	
-//	/**
-//	 * @return the myDownloadingResources
-//	 */
-//	public Vector<Resource> getMyDownloadingResources();
-
-//	/**
-//	 * @param myDownloadingResources the myDownloadingResources to set
-//	 */
-//	public void setMyDownloadingResources(Vector<Resource> myDownloadingResources);
+	public void setMyResources(final Vector<Resource> myResources);
 	
 	/**
 	 * 
@@ -41,9 +35,10 @@ public interface ClientInterface {
 	public String getMyName();
 
 	/**
+	 * Set the client name.
 	 * @param myName the myName to set
 	 */
-	public void setMyName(String myName);
+	public void setMyName(final String myName);
 	
 	/**
 	 * Connect the client to the p2p system.
@@ -52,11 +47,56 @@ public interface ClientInterface {
 	public Integer connect();
 	
 	/**
-	 * 
 	 * @return true if and only if the connection is up.
 	 */
 	public Boolean getConnectionStatus();
 
+	/**
+	 * Request a Resource from the network.
+	 * @param paramResquestedResource
+	 * @return
+	 */
 	public Resource requestResource(Resource paramResquestedResource);
 	
+	/**
+	 * Gets the my download capaciy.
+	 *
+	 * @return the myDownloadCapaciy
+	 */
+	public Integer getMyDownloadCapaciy();
+	
+	/**
+	 * Sets the my download capaciy.
+	 *
+	 * @param myDownloadCapaciy the myDownloadCapaciy to set
+	 */
+	public void setMyDownloadCapaciy(final Integer myDownloadCapaciy);
+	
+	/**
+	 * Gets the my downloading parts.
+	 *
+	 * @return the myDownloadingParts
+	 */
+	public Vector<ResourcePart> getMyDownloadingParts();
+	
+	/**
+	 * Sets the my downloading parts.
+	 *
+	 * @param myDownloadingParts the myDownloadingParts to set
+	 */
+	public void setMyDownloadingParts(final Vector<ResourcePart> myDownloadingParts);
+	
+	/**
+	 * Sets the my gui client frame.
+	 *
+	 * @param myGuiClientFrame the myGuiClientFrame to set
+	 */
+	public void setMyGuiClientFrame(final ClientFrame myGuiClientFrame);
+	
+	/**
+	 * Gets the my gui client frame.
+	 *
+	 * @return the myGuiClientFrame
+	 */
+	public ClientFrame getMyGuiClientFrame();
 }
