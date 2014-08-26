@@ -1,13 +1,5 @@
-/*
- * Enrico Rotundo - 2014 - http://www.math.unipd.it/~crafa/prog3/
- */
 package resource.part;
 
-/**
- * The Interface PartInterface.
- *
- * @author erotundo
- */
 public interface ResourcePartInterface {
 	/**
 	 * Gets the part number.
@@ -17,19 +9,8 @@ public interface ResourcePartInterface {
 	 */
 	public Integer getPartNumber();
 
-	/**
-	 * Sets the part number.
-	 *
-	 * @param partID
-	 *            the partID to set
-	 */
 	public void setPartNumber(Integer partID);
 
-	/**
-	 * To string.
-	 *
-	 * @return the string
-	 */
 	@Override
 	public String toString();
 

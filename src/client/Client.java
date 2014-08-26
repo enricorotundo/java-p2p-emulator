@@ -1,6 +1,3 @@
-/*
- * Enrico Rotundo - 2014 - http://www.math.unipd.it/~crafa/prog3/
- */
 package client;
 
 import gui.ClientFrame;
@@ -10,46 +7,24 @@ import java.util.Vector;
 import resource.Resource;
 import resource.part.ResourcePart;
 
-/**
- * The Class Client.
- *
- * @author erotundo
- */
 public final class Client implements ClientInterface {
 
-	/**
-	 * Load random resources.
-	 */
 	private static Vector<Resource> loadRandomResources() {
 		return Resource.createRandomResourceVector();
 	}
 
-	/** The my resources. */
 	private Vector<Resource> myResources = new Vector<Resource>();
-
-	/** The my downloading parts. */
 	private Vector<ResourcePart> myDownloadingParts = new Vector<ResourcePart>();
-
-	/** The my gui client frame. */
 	private ClientFrame myGuiClientFrame;
-
-	/** The my name. */
 	private String myName="";
+	private Integer myDownloadCapacitInteger = 0; // il client puo scaricare
+	// fino a myDownloadCapaciy
+	// PARTI DI RISORSE
+	// contemporaneamente
 
-	/** The my download capaciy. */
-	private Integer myDownloadCapaciy=0; // il client puo scaricare fino a myDownloadCapaciy PARTI DI RISORSE contemporaneamente
 
-
-	/** The connection up boolean. */
 	private Boolean connectionUpBoolean = false;
 
-
-	/**
-	 * Instantiates a new client.
-	 *
-	 * @param paramClientName the param client name
-	 * @param paramDownloadCapacity the param download capacity
-	 */
 	public Client(final String paramClientName, final Integer paramDownloadCapacity) {
 		setMyName(paramClientName);
 		setMyDownloadCapaciy(paramDownloadCapacity);
@@ -58,9 +33,6 @@ public final class Client implements ClientInterface {
 		setMyGuiClientFrame(createClientFrame()); // should be the last one call (GUI could request a full object set)
 	}
 
-	/* (non-Javadoc)
-	 * @see client.ClientInterface#connect()
-	 */
 	@Override
 	public Integer connect() {
 		if (getConnectionStatus()) {
@@ -76,12 +48,6 @@ public final class Client implements ClientInterface {
 		}
 	}
 
-
-	/**
-	 * Creates the client frame.
-	 *
-	 * @return the client frame
-	 */
 	private ClientFrame createClientFrame() {
 		final ClientFrame clientFrame = new ClientFrame(getMyName(), this);
 		clientFrame.appendLogEntry("Creating client... ");
@@ -92,9 +58,6 @@ public final class Client implements ClientInterface {
 		return clientFrame;
 	}
 
-	/* (non-Javadoc)
-	 * @see client.ClientInterface#cheackConnectionStatus()
-	 */
 	@Override
 	public Boolean getConnectionStatus() {
 		//TODO: gestire eccezz ecc..
@@ -103,7 +66,7 @@ public final class Client implements ClientInterface {
 
 	@Override
 	public Integer getMyDownloadCapaciy() {
-		return myDownloadCapaciy;
+		return myDownloadCapacitInteger;
 	}
 
 	@Override
@@ -116,25 +79,16 @@ public final class Client implements ClientInterface {
 		return myGuiClientFrame;
 	}
 
-	/* (non-Javadoc)
-	 * @see client.ClientInterface#getMyName()
-	 */
 	@Override
 	public final String getMyName() {
 		return myName;
 	}
 
-	/* (non-Javadoc)
-	 * @see client.ClientInterface#getMyResources()
-	 */
 	@Override
 	public Vector<Resource> getMyResources() {
 		return myResources;
 	}
 
-	/* (non-Javadoc)
-	 * @see client.ClientInterface#requestResource(resource.Resource)
-	 */
 	@Override
 	public Resource requestResource(final Resource paramResquestedResource) {
 		if (getConnectionStatus()) {
@@ -156,7 +110,7 @@ public final class Client implements ClientInterface {
 
 	@Override
 	public void setMyDownloadCapaciy(final Integer myDownloadCapaciy) {
-		this.myDownloadCapaciy = myDownloadCapaciy;
+		this.myDownloadCapacitInteger = myDownloadCapaciy;
 	}
 
 	@Override
@@ -169,17 +123,11 @@ public final class Client implements ClientInterface {
 		this.myGuiClientFrame = myGuiClientFrame;
 	}
 
-	/* (non-Javadoc)
-	 * @see client.ClientInterface#setMyName(java.lang.String)
-	 */
 	@Override
 	public final void setMyName(final String myName) {
 		this.myName = myName;
 	}
 
-	/* (non-Javadoc)
-	 * @see client.ClientInterface#setMyResources(java.util.Vector)
-	 */
 	@Override
 	public void setMyResources(final Vector<Resource> myResources) {
 		this.myResources = myResources;

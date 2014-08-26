@@ -1,6 +1,3 @@
-/*
- * Enrico Rotundo - 2014 - http://www.math.unipd.it/~crafa/prog3/
- */
 package resource;
 
 import java.util.Random;
@@ -8,19 +5,9 @@ import java.util.Vector;
 
 import resource.part.ResourcePart;
 
-/**
- * The Class Resource.
- *
- * @author erotundo
- */
 public final class Resource implements ResourceInterface { // Josh Bloch's:
 															// "design for inheritance or prohibit it"
 
-	/**
-	 * Creates the random resource.
-	 *
-	 * @return the resource
-	 */
 	public static Resource createRandomResource() {
 		return new Resource(getRandomAlphabethChar(), getRandomNonZeroNumber());
 	}
@@ -65,26 +52,11 @@ public final class Resource implements ResourceInterface { // Josh Bloch's:
 		return rndInteger;
 	}
 
-	/** The name. */
 	private final ResourceName name;
-
-	/** The resource parts. */
 	private final Vector<ResourcePart> resourceParts;
-
-	/** The random generator. */
 	private static Random randomGenerator = new Random();
-
-	/** The possible resources names. */
 	private static String possibleResourcesNames = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-	/**
-	 * Instantiates a new resource.
-	 *
-	 * @param paramName
-	 *            the param name
-	 * @param paramNumberOfParts
-	 *            the param number of parts
-	 */
 	public Resource(final Character paramName, final Integer paramNumberOfParts) {
 		name = new ResourceName(paramName, paramNumberOfParts);
 		resourceParts = new Vector<ResourcePart>();
@@ -105,31 +77,16 @@ public final class Resource implements ResourceInterface { // Josh Bloch's:
 				.charAt(2))));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see resource.ResourceInterface#getName()
-	 */
 	@Override
 	public ResourceName getName() {
 		return name;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see resource.ResourceInterface#getParts()
-	 */
 	@Override
 	public Vector<ResourcePart> getParts() {
 		return resourceParts;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see resource.ResourceInterface#toString()
-	 */
 	@Override
 	public String toString() {
 		return getName().toString();

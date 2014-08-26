@@ -1,6 +1,3 @@
-/*
- * Enrico Rotundo - 2014 - http://www.math.unipd.it/~crafa/prog3/
- */
 package resource;
 
 import java.text.ParseException;
@@ -10,11 +7,6 @@ import javax.swing.text.MaskFormatter;
 
 import resource.part.ResourcePart;
 
-/**
- * The Interface ResourceInterface.
- *
- * @author erotundo
- */
 public interface ResourceInterface {
 
 	/**
@@ -56,10 +48,7 @@ public interface ResourceInterface {
 			return createFormatter("U #");
 		}
 
-		/** The resource name. */
 		private Character resourceName;
-
-		/** The number of parts. */
 		private Integer numberOfParts = 0;
 
 		/**
@@ -76,40 +65,18 @@ public interface ResourceInterface {
 			setNumberOfParts(paramNumberOfParts);
 		}
 
-		/**
-		 * Gets the number of parts.
-		 *
-		 * @return the numberOfParts
-		 */
 		final public Integer getNumberOfParts() {
 			return numberOfParts;
 		}
 
-		/**
-		 * Gets the resource name.
-		 *
-		 * @return the resourceName
-		 */
 		final public Character getResourceName() {
 			return resourceName;
 		}
 
-		/**
-		 * Sets the number of parts.
-		 *
-		 * @param numberOfParts
-		 *            the numberOfParts to set
-		 */
 		final public void setNumberOfParts(final Integer numberOfParts) {
 			this.numberOfParts = numberOfParts;
 		}
 
-		/**
-		 * Sets the resource name.
-		 *
-		 * @param resourceName
-		 *            the resourceName to set
-		 */
 		final public void setResourceName(final Character resourceName) {
 			this.resourceName = resourceName;
 		}
@@ -126,18 +93,8 @@ public interface ResourceInterface {
 
 	}
 
-	/**
-	 * Gets the resource ResourceName object.
-	 *
-	 * @return the name
-	 */
 	public ResourceName getName();
 
-	/**
-	 * Gets the resource's parts.
-	 *
-	 * @return the parts Vector<Part>.
-	 */
 	public Vector<ResourcePart> getParts();
 
 	/**
