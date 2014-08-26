@@ -1,7 +1,6 @@
 /**
  *
  */
-import server.Server;
 import client.Client;
 
 /**
@@ -27,7 +26,7 @@ public class P3 {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				final Server serverFrame = new Server("srv1");
+				// final Server serverFrame = new Server("srv1");
 
 			}
 		});

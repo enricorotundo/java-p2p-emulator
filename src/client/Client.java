@@ -13,29 +13,30 @@ public final class Client implements ClientInterface {
 		return Resource.createRandomResourceVector();
 	}
 
-	private Vector<Resource> myResources = new Vector<Resource>();
-	private Vector<ResourcePart> myDownloadingParts = new Vector<ResourcePart>();
-	private ClientFrame myGuiClientFrame;
-	private String myName="";
-	private Integer myDownloadCapacitInteger = 0; // il client puo scaricare
+	private Vector<Resource> resources = new Vector<Resource>();
+
+	private final Vector<ResourcePart> downloadingParts = new Vector<ResourcePart>();
+
+	private final ClientFrame guiClientFrame;
+	private String name = "";
+
+	private Integer downloadCapacitInteger = 0; // il client puo scaricare
 	// fino a myDownloadCapaciy
 	// PARTI DI RISORSE
 	// contemporaneamente
-
-
-	private Boolean connectionUpBoolean = false;
-
+	private Boolean connectionUpBoolean = new Boolean(false);
 	public Client(final String paramClientName, final Integer paramDownloadCapacity) {
-		setMyName(paramClientName);
-		setMyDownloadCapaciy(paramDownloadCapacity);
-		setMyResources(Resource.createRandomResourceVector());
+		name = paramClientName;
+		downloadCapacitInteger = paramDownloadCapacity;
+		resources = Resource.createRandomResourceVector();
 
-		setMyGuiClientFrame(createClientFrame()); // should be the last one call (GUI could request a full object set)
+		guiClientFrame = createClientFrame();
 	}
+
 
 	@Override
 	public Integer connect() {
-		if (getConnectionStatus()) {
+		if (connectionUpBoolean) {
 			//disconnection
 			connectionUpBoolean = false;
 			return Integer.valueOf(0);
@@ -49,87 +50,49 @@ public final class Client implements ClientInterface {
 	}
 
 	private ClientFrame createClientFrame() {
-		final ClientFrame clientFrame = new ClientFrame(getMyName(), this);
+		final ClientFrame clientFrame = new ClientFrame(name, this);
+
 		clientFrame.appendLogEntry("Creating client... ");
 		clientFrame.appendLogEntry("Starting creating resources...");
 		loadRandomResources();
-		setMyResources(loadRandomResources());
+		resources = loadRandomResources();
 		clientFrame.appendLogEntry("Resources created.");
 		return clientFrame;
 	}
 
 	@Override
-	public Boolean getConnectionStatus() {
-		//TODO: gestire eccezz ecc..
+	public String getClientName() {
+		return name;
+	}
+
+	public Boolean getConnectionUpBoolean() {
 		return connectionUpBoolean;
 	}
 
-	@Override
-	public Integer getMyDownloadCapaciy() {
-		return myDownloadCapacitInteger;
+	public Vector<ResourcePart> getDownloadingParts() {
+		return downloadingParts;
 	}
 
-	@Override
-	public Vector<ResourcePart> getMyDownloadingParts() {
-		return myDownloadingParts;
-	}
-
-	@Override
-	public ClientFrame getMyGuiClientFrame() {
-		return myGuiClientFrame;
-	}
-
-	@Override
-	public final String getMyName() {
-		return myName;
-	}
-
-	@Override
-	public Vector<Resource> getMyResources() {
-		return myResources;
+	public Vector<Resource> getResources() {
+		return resources;
 	}
 
 	@Override
 	public Resource requestResource(final Resource paramResquestedResource) {
-		if (getConnectionStatus()) {
-			//TODO
-			//if
+		if (connectionUpBoolean) {
+			// TODO
+			// if
 			for (final ResourcePart part : paramResquestedResource.getParts()) {
-				getMyDownloadingParts().add(part);
+				downloadingParts.add(part);
 			}
 
-			//			part.setDownloadingStatus(TransfertStatus.Downloading);
+			// part.setDownloadingStatus(TransfertStatus.Downloading);
 
-			myGuiClientFrame.getDownloadQueueList().updateUI();
-		} else {
+			guiClientFrame.getDownloadQueueList().updateUI();
+		} else
 			System.out.println("Connection down.");
-		}
 
-		return paramResquestedResource;//stub
+		return paramResquestedResource;// stub
 	}
 
-	@Override
-	public void setMyDownloadCapaciy(final Integer myDownloadCapaciy) {
-		this.myDownloadCapacitInteger = myDownloadCapaciy;
-	}
-
-	@Override
-	public void setMyDownloadingParts(final Vector<ResourcePart> myDownloadingParts) {
-		this.myDownloadingParts = myDownloadingParts;
-	}
-
-	@Override
-	public void setMyGuiClientFrame(final ClientFrame myGuiClientFrame) {
-		this.myGuiClientFrame = myGuiClientFrame;
-	}
-
-	@Override
-	public final void setMyName(final String myName) {
-		this.myName = myName;
-	}
-
-	@Override
-	public void setMyResources(final Vector<Resource> myResources) {
-		this.myResources = myResources;
-	}
 }

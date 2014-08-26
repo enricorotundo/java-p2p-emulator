@@ -12,10 +12,6 @@ import javax.swing.JScrollPane;
 import server.Server;
 import client.Client;
 
-/**
- * @author erotundo
- *
- */
 public final class ServerFrame extends AbstractBasicFrame {
 	private JPanel connectedClientsPanel;
 	private JPanel connectedServersPanel;
@@ -23,27 +19,14 @@ public final class ServerFrame extends AbstractBasicFrame {
 	private JList<Server> connectedServersList;
 	public static final long serialVersionUID = 44L;
 
-	/**
-	 * Instantiates a new server frame.
-	 *
-	 * @param s
-	 *            the s
-	 */
 	public ServerFrame(final String s) {
 		super(s);
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-	 */
 	@Override
 	public void actionPerformed(final ActionEvent e) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override

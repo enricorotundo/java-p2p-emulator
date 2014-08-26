@@ -30,7 +30,7 @@ public final class Server implements ServerInterface {
 		}
 
 		for (final ClientInterface clientInterface : myConnectedClients) {
-			myFrame.appendLogEntry(clientInterface.getMyName());
+			myFrame.appendLogEntry(clientInterface.getClientName());
 		}
 
 	}

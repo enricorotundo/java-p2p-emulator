@@ -18,10 +18,6 @@ import resource.ResourceInterface.ResourceName;
 import resource.part.ResourcePart;
 import client.Client;
 
-/**
- * @author erotundo
- *
- */
 public final class ClientFrame extends AbstractBasicFrame {
 	private JPanel searchFilePanel;
 	protected JPanel westPanel;
@@ -31,15 +27,12 @@ public final class ClientFrame extends AbstractBasicFrame {
 	private JFormattedTextField fileSearchTextField;
 	private JButton connectionButton;
 	private JButton fileSearchButton;
-	private final Client myClient;
+	private final Client client;
 	public static final long serialVersionUID = 43L;
 
-	/**
-	 * @param s
-	 */
 	public ClientFrame(final String s, final Client paramClient) {
 		super(s);
-		myClient = paramClient;
+		client = paramClient;
 		setSize(new Dimension(600, 500));
 		setWestPanel();
 		setEastPanel();
@@ -49,12 +42,6 @@ public final class ClientFrame extends AbstractBasicFrame {
 		setContentPane(contentPane);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see
-	 * java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-	 */
 	@Override
 	public void actionPerformed(final ActionEvent e) {
 		if ("search".equals(e.getActionCommand()))
@@ -63,16 +50,10 @@ public final class ClientFrame extends AbstractBasicFrame {
 			performConnection();
 	}
 
-	/**
-	 * @return the completeFilesList
-	 */
 	public JList<Resource> getCompleteFilesList() {
 		return completeFilesList;
 	}
 
-	/**
-	 * @return the downloadQueueList
-	 */
 	public JList<ResourcePart> getDownloadQueueList() {
 		return downloadQueueList;
 	}
@@ -80,7 +61,7 @@ public final class ClientFrame extends AbstractBasicFrame {
 	private void performConnection() {
 		fileSearchTextField.requestFocus();
 		appendLogEntry("Connection button pressed.");
-		final Integer connectionResultInteger = myClient.connect();
+		final Integer connectionResultInteger = client.connect();
 		if (connectionResultInteger == 1) {
 			appendLogEntry("Connection done.");
 			setConnectionButtonText("Disconnect");
@@ -103,14 +84,14 @@ public final class ClientFrame extends AbstractBasicFrame {
 			JOptionPane.showMessageDialog(this, "Please enter a file name.",
 					"File name empty", JOptionPane.WARNING_MESSAGE);
 		} else {
-			if (myClient.getConnectionStatus()) {
+			if (client.getConnectionUpBoolean()) {
 				appendLogEntry("Searching for: "
 						+ fileSearchTextField.getValue());
 
 				final Resource searchedResource = new Resource(
 						fileSearchTextField.getValue().toString());
 
-				final Resource returnedResource = myClient
+				final Resource returnedResource = client
 						.requestResource(searchedResource);
 
 				// TODO check if != null
@@ -135,10 +116,6 @@ public final class ClientFrame extends AbstractBasicFrame {
 		connectionButton.setText(paramText);
 	}
 
-	/**
-	 * @param downloadQueueList
-	 *            the downloadQueueList to set
-	 */
 	public void setDownloadQueueList(final JList<ResourcePart> downloadQueueList) {
 		this.downloadQueueList = downloadQueueList;
 	}
@@ -150,7 +127,7 @@ public final class ClientFrame extends AbstractBasicFrame {
 		eastPanel.setLayout(new BorderLayout());
 
 		downloadQueueList = new JList<ResourcePart>(
-				myClient.getMyDownloadingParts());
+				client.getDownloadingParts());
 		downloadQueueList.setPreferredSize(new Dimension(getWidth() / 2 - 80,
 				270));
 
@@ -220,7 +197,7 @@ public final class ClientFrame extends AbstractBasicFrame {
 				.createTitledBorder("Entire Resources"));
 		westPanel.setLayout(new BorderLayout());
 
-		completeFilesList = new JList<Resource>(myClient.getMyResources());
+		completeFilesList = new JList<Resource>(client.getResources());
 		completeFilesList.setPreferredSize(new Dimension(getWidth() / 2 - 80,
 				270));
 
@@ -233,14 +210,3 @@ public final class ClientFrame extends AbstractBasicFrame {
 		westPanel.add(areaScrollPane, BorderLayout.CENTER);
 	}
 }
-
-// /* (non-Javadoc)
-// * @see
-// java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
-// */
-// @Override
-// public void propertyChange(PropertyChangeEvent evt) { /** Called when a
-// field's "value" property changes. */
-//
-// }
-
