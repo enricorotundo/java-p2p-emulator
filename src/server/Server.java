@@ -14,12 +14,12 @@ public final class Server implements ServerInterface {
 	private ServerFrame myFrame = null;
 	private static final String HOST = "localhost";
 	private Vector<ClientInterface> myConnectedClients;
-	private String serverNameString;
+	private final String serverNameString;
 
 	public Server(final String paramServerName) {
 		myFrame = new ServerFrame(paramServerName);
 		myFrame.appendLogEntry("Buliding server...");
-		setServerNameString(paramServerName);
+		serverNameString = paramServerName;
 
 		try {
 			Naming.rebind(getServerUrl(), this);
@@ -27,6 +27,10 @@ public final class Server implements ServerInterface {
 			e.printStackTrace();
 		} catch (final MalformedURLException e) {
 			e.printStackTrace();
+		}
+
+		for (final ClientInterface clientInterface : myConnectedClients) {
+			myFrame.appendLogEntry(clientInterface.getMyName());
 		}
 
 	}
@@ -57,22 +61,9 @@ public final class Server implements ServerInterface {
 		return null;
 	}
 
-	public String getServerNameString() {
-		return serverNameString;
-	}
-
 	@Override
 	public String getServerUrl() throws RemoteException {
-		return "rmi://" + HOST + "/Server/" + getServerNameString();
-	}
-
-	public void setMyConnectedClients(
-			final Vector<ClientInterface> myConnectedClients) {
-		this.myConnectedClients = myConnectedClients;
-	}
-
-	public void setServerNameString(final String serverNameString) {
-		this.serverNameString = serverNameString;
+		return "rmi://" + HOST + "/Server/" + serverNameString;
 	}
 
 }
