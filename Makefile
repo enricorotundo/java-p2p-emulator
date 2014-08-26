@@ -12,17 +12,17 @@ bGUI=./bin/gui
 
 bRES=./bin/resource
 
-bSRV=./bin/server
+bSRV="./bin/server"
 
-progetto : $(bCLI)/AbstractBasicFrame.class 
+progetto : $(bGUI)/AbstractBasicFrame.class $(bGUI)/ClientFrame.class
 
-# ClientFrame.class ServerFrame.class Client.class ClientInterface.class ResourcePart.class ResourcePartInterface.class TransfertStatus.class Resource.class ResourceInterface.class Server.class ServerInterface.class   
+#  ServerFrame.class Client.class ClientInterface.class ResourcePart.class ResourcePartInterface.class TransfertStatus.class Resource.class ResourceInterface.class Server.class ServerInterface.class   
 
-$(bCLI)/AbstractBasicFrame.class : $(sSRC)/AbstractBasicFrame.java
-	javac $(sSRC)/AbstractBasicFrame.java -d ./
+$(bGUI)/AbstractBasicFrame.class : $(sGUI)/AbstractBasicFrame.java
+	javac $(sGUI)/AbstractBasicFrame.java -d $(bGUI)
 	
-# ClientFrame.class : ClientFrame.java
-# 	javac ClientFrame.java -d ./
+$(bGUI)/ClientFrame.class : $(sGUI)/ClientFrame.java
+	javac $(sGUI)/ClientFrame.java -d $(bGUI)
 
 # ServerFrame.class : ServerFrame.java
 # 	javac ServerFrame.java -d ./
@@ -55,7 +55,7 @@ $(bCLI)/AbstractBasicFrame.class : $(sSRC)/AbstractBasicFrame.java
 # 	javac ServerInterface.java -d ./
 
 clean: 
-	rm -Rf *.class
+	find . -name "*.class" -type f -delete
 
 # start: 
 # 	rmiregistry &
