@@ -13,26 +13,61 @@ public final class Client implements ClientInterface {
 		return Resource.createRandomResourceVector();
 	}
 
+	public static void main(final String[] args) {
+		if (args.length == 0) {
+			System.out.println("invalid argument!");
+		} else {
+			try {
+				final Vector<Resource> argResources = new Vector<Resource>();
+				for (int i=3; i<args.length; i+=2) {
+					argResources.add(new Resource(args[i].toCharArray()[0], Integer
+							.parseInt(args[i + 1])));
+				}
+				// if no resources args fill it random
+				if (argResources.size() == 0)
+					argResources.addAll(Resource.createRandomResourceVector());
+
+				// Schedule a job for the event dispatch thread:
+				// creating and showing this application's GUI.
+				javax.swing.SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							final Client c = new Client(args[0], args[1],
+									Integer.parseInt(args[2]), argResources);
+						} catch (final Exception e) {
+							e.printStackTrace();
+						}
+					}
+				});
+			} catch (final Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	private Vector<Resource> resources = new Vector<Resource>();
 
 	private final Vector<ResourcePart> downloadingParts = new Vector<ResourcePart>();
-
 	private final ClientFrame guiClientFrame;
-	private String name = "";
 
+	private String name = "";
 	private Integer downloadCapacitInteger = 0; // il client puo scaricare
 	// fino a myDownloadCapaciy
 	// PARTI DI RISORSE
 	// contemporaneamente
 	private Boolean connectionUpBoolean = new Boolean(false);
-	public Client(final String paramClientName, final Integer paramDownloadCapacity) {
+
+
+	public Client(final String paramClientName, final String paramServerName, final Integer paramDownloadCapacity, final Vector<Resource> paramResources) {
 		name = paramClientName;
 		downloadCapacitInteger = paramDownloadCapacity;
-		resources = Resource.createRandomResourceVector();
+
+		resources = paramResources;
+
 
 		guiClientFrame = createClientFrame();
 	}
-
 
 	@Override
 	public Integer connect() {
@@ -94,5 +129,4 @@ public final class Client implements ClientInterface {
 
 		return paramResquestedResource;// stub
 	}
-
 }

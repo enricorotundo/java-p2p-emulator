@@ -3,21 +3,13 @@ package resource.part;
 import resource.Resource;
 
 public final class ResourcePart implements ResourcePartInterface { // Josh
-																	// Bloch's:
+	// Bloch's:
 	// "design for inheritance or prohibit it"
 
 	private Integer partNumber = 0;
 	private Resource ownerResource;
 	private TransfertStatus downloadingStatus;
 
-	/**
-	 * Instantiates a new part.
-	 *
-	 * @param paramPartNumber
-	 *            the param part number
-	 * @param paramOwnerResource
-	 *            the param owner resource
-	 */
 	public ResourcePart(final Integer paramPartNumber,
 			final Resource paramOwnerResource) {
 		partNumber = paramPartNumber;

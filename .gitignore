@@ -1,6 +1,7 @@
 /bin/
 /doc/
 
+*.DS_STORE
 
 *.class
 
