@@ -2,10 +2,12 @@ package client;
 
 import gui.ClientFrame;
 
+import java.rmi.Naming;
 import java.util.Vector;
 
 import resource.Resource;
 import resource.part.ResourcePart;
+import server.ServerInterface;
 
 public final class Client implements ClientInterface {
 
@@ -52,21 +54,22 @@ public final class Client implements ClientInterface {
 	private final ClientFrame guiClientFrame;
 
 	private String name = "";
+	/* download capacity */
 	private Integer downloadCapacitInteger = 0; // il client puo scaricare
 	// fino a myDownloadCapaciy
 	// PARTI DI RISORSE
 	// contemporaneamente
 	private Boolean connectionUpBoolean = new Boolean(false);
+	private String serverName;
+	private static final String HOST = "localhost";
 
 
 	public Client(final String paramClientName, final String paramServerName, final Integer paramDownloadCapacity, final Vector<Resource> paramResources) {
 		name = paramClientName;
+		serverName = paramServerName;
 		downloadCapacitInteger = paramDownloadCapacity;
-
 		resources = paramResources;
-
-
-		guiClientFrame = createClientFrame();
+		guiClientFrame = createClientFrame(); // last one
 	}
 
 	@Override
@@ -78,6 +81,21 @@ public final class Client implements ClientInterface {
 			//TODO: tornare -1 se qualcosa va storno
 		} else {
 			//connection
+
+			try {
+				final ServerInterface serverRemoteInterface = (ServerInterface) Naming
+						.lookup("rmi://" + HOST + "/Server/" + serverName);
+				guiClientFrame.appendLogEntry("Trying to connect with "
+						+ "rmi://" + HOST + "/Server/" + serverName);
+
+			} catch (final Exception e) {
+				e.printStackTrace();
+			}
+
+			// serverConnected = ref;
+			// ref.appendLog("Client " + getClientName() + " connesso");
+			// sc = new ServerChecker(); sc.start();
+			//
 			connectionUpBoolean = true;
 			return Integer.valueOf(1);
 			//TODO: tornare -1 se qualcosa va storno
@@ -108,6 +126,7 @@ public final class Client implements ClientInterface {
 		return downloadingParts;
 	}
 
+	@Override
 	public Vector<Resource> getResources() {
 		return resources;
 	}

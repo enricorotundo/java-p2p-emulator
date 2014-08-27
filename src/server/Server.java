@@ -7,6 +7,7 @@ import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.util.Vector;
 
+import resource.Resource;
 import resource.ResourceInterface;
 import client.ClientInterface;
 
@@ -23,7 +24,7 @@ public final class Server implements ServerInterface {
 					try {
 						final Server server = new Server(args[0]);
 						final String rmiObjName = server.getServerUrl();
-						Naming.rebind(rmiObjName,server);
+						Naming.rebind(rmiObjName, server);
 					} catch (final Exception e) {
 						e.printStackTrace();
 					}
@@ -35,6 +36,7 @@ public final class Server implements ServerInterface {
 	private ServerFrame myFrame = null;
 	private static final String HOST = "localhost";
 	private Vector<ClientInterface> myConnectedClients;
+	Vector<ServerInterface> servers = new Vector<ServerInterface>();
 
 	private final String serverNameString;
 
@@ -73,10 +75,27 @@ public final class Server implements ServerInterface {
 
 	}
 
+	@Override
+	public Vector<ServerInterface> getAllServers() {
+		return servers;
+	}
+
 	//	@Override
 	@Override
 	public Vector<ClientInterface> getClients() throws RemoteException {
 		return myConnectedClients;
+	}
+
+	@Override
+	public Vector<Resource> getClientsResources()
+			throws RemoteException {
+		final Vector<Resource> resources = new Vector<Resource>();
+		for (final ClientInterface cli : myConnectedClients) {
+			for (final Resource resource : cli.getResources()) {
+				resources.add(resource);
+			}
+		}
+		return resources;
 	}
 
 	//	@Override
@@ -85,6 +104,11 @@ public final class Server implements ServerInterface {
 			final ResourceInterface paramResource) throws RemoteException {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public String getServerNameString() {
+		return serverNameString;
 	}
 
 	@Override

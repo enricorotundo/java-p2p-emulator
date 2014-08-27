@@ -82,8 +82,6 @@ public interface ResourceInterface {
 		}
 
 		/**
-		 * To string.
-		 *
 		 * @return a String representation of the ResourceName (e.g "A 3")
 		 */
 		@Override

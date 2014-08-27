@@ -5,16 +5,14 @@ import java.util.Vector;
 
 import resource.part.ResourcePart;
 
-public final class Resource implements ResourceInterface { // Josh Bloch's:
-															// "design for inheritance or prohibit it"
+public final class Resource implements ResourceInterface {
+	// Josh Bloch's: "design for inheritance or prohibit it"
 
 	public static Resource createRandomResource() {
 		return new Resource(getRandomAlphabethChar(), getRandomNonZeroNumber());
 	}
 
 	/**
-	 * Creates the random resource vector.
-	 *
 	 * @return a Vector<Resource> of length [1...10) filled with non-duplicates
 	 *         random named and parts resources.
 	 */
@@ -31,9 +29,7 @@ public final class Resource implements ResourceInterface { // Josh Bloch's:
 	}
 
 	/**
-	 * Gets the random alphabeth char.
-	 *
-	 * @return the random alphabeth char
+	 * @return a random alphabeth char
 	 */
 	private static Character getRandomAlphabethChar() {
 		return possibleResourcesNames.charAt(randomGenerator

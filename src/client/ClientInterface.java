@@ -1,5 +1,7 @@
 package client;
 
+import java.util.Vector;
+
 import resource.Resource;
 
 public interface ClientInterface {
@@ -8,7 +10,16 @@ public interface ClientInterface {
 	 * @return 1 if connection is done, 0 if disconnection is done, -1 if something goes wrong.
 	 */
 	public Integer connect();
+
+	/**
+	 * @return the client name identifier
+	 */
 	public String getClientName();
+
+	/**
+	 * @return client's resources.
+	 */
+	public Vector<Resource> getResources();
 
 	/**
 	 * @return true if and only if the connection is up.
