@@ -1,8 +1,6 @@
 package server;
 
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
+import java.rmi.Naming;
 
 
 public class ServerStarter {
@@ -12,15 +10,11 @@ public class ServerStarter {
 			System.out.println("invalid argument!");
 		} else {
 			try {
-				// final Server server = new Server(args[0]);
-				// final Server server = new Server();
-				//
-				// Naming.rebind("oo", server);
+				final Server server = new Server(args[0]);
 
-				final Server server = new Server();
-				final ServerInterface stub = (ServerInterface) UnicastRemoteObject.exportObject(server, 0);
-				final Registry registry = LocateRegistry.getRegistry();
-				registry.rebind("ci", stub);
+				Naming.rebind("oo", server);
+
+
 
 			} catch (final Exception e) {
 				e.printStackTrace();
