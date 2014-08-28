@@ -1,6 +1,7 @@
 package server;
 
 import java.rmi.Naming;
+import java.rmi.server.UnicastRemoteObject;
 
 public class ServerStarter {
 
@@ -10,7 +11,10 @@ public class ServerStarter {
 		} else {
 			try {
 				final Server server = new Server(args[0]);
-				Naming.rebind(server.getServerUrl(), server);
+				// Naming.rebind(server.getServerUrl(), server);
+				final ServerInterface stub = (ServerInterface) UnicastRemoteObject.exportObject(server, 0);
+				Naming.rebind("ciao", stub);
+
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}

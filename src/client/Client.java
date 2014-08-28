@@ -2,12 +2,10 @@ package client;
 
 import gui.ClientFrame;
 
-import java.rmi.Naming;
 import java.util.Vector;
 
 import resource.Resource;
 import resource.part.ResourcePart;
-import server.ServerInterface;
 
 public final class Client implements ClientInterface {
 
@@ -52,10 +50,17 @@ public final class Client implements ClientInterface {
 			//connection
 
 			try {
-				final ServerInterface serverRemoteInterface = (ServerInterface) Naming
-						.lookup("rmi://" + HOST + "/Server/" + serverName);
-				guiClientFrame.appendLogEntry("Trying to connect with "
-						+ "rmi://" + HOST + "/Server/" + serverName);
+				// guiClientFrame.appendLogEntry("Trying to connect with " +
+				// "rmi://" + HOST + "/Server/" + serverName);
+				// final ServerInterface serverRemoteInterface =
+				// (ServerInterface) Naming.lookup("rmi://" + HOST + "/Server/"
+				// + serverName);
+				//
+				// if (serverRemoteInterface.clientConnect(this) == 1) {
+				//					guiClientFrame.appendLogEntry("Succesfully connected to " + serverRemoteInterface.getServerUrl());
+				// } else {
+				//					guiClientFrame.appendLogEntry("Unable to connect with " + serverRemoteInterface.getServerUrl());
+				// }
 
 			} catch (final Exception e) {
 				e.printStackTrace();
@@ -74,11 +79,11 @@ public final class Client implements ClientInterface {
 	private ClientFrame createClientFrame() {
 		final ClientFrame clientFrame = new ClientFrame(name, this);
 
-		clientFrame.appendLogEntry("Creating client... ");
-		clientFrame.appendLogEntry("Starting creating resources...");
-		loadRandomResources();
-		resources = loadRandomResources();
-		clientFrame.appendLogEntry("Resources created.");
+		// clientFrame.appendLogEntry("Creating client... ");
+		// clientFrame.appendLogEntry("Starting creating resources...");
+		// loadRandomResources();
+		// resources = loadRandomResources();
+		// clientFrame.appendLogEntry("Resources created.");
 		return clientFrame;
 	}
 

@@ -15,8 +15,9 @@ clean:
 start:
 	rmiregistry &
 	sleep 2
-	xterm -e "java -cp bin/ server.ServerStarter Razorback1" &
-	sleep 2
+	java -cp bin/ server.ServerStarter Razorback1
+	#xterm -e "java -cp bin/ server.ServerStarter Razorback1; read" &
+	#sleep 2
 	# xterm -e "java -cp bin/ server.Server Razorback2" &
 	# sleep 4
 	# xterm -e "java -cp bin/ client.Client C1 Razorback1 3 A 1 B 4 C 6" &
