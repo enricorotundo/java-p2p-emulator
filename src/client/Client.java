@@ -10,6 +10,8 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.Vector;
 
+import javax.swing.JOptionPane;
+
 import resource.Resource;
 import resource.part.ResourcePart;
 import server.ServerInterface;
@@ -53,17 +55,30 @@ public final class Client implements ClientInterface, ActionListener {
 
 	@Override
 	public void connectToServer() {
-		// TODO Auto-generated method stub
 		try {
 			final ServerInterface remoteServerInterface = (ServerInterface) Naming.lookup("rmi://" + HOST + "/Server/" + serverName);
 
-			if (remoteServerInterface.clientConnect(this) == 1) {
-				guiClientFrame.appendLogEntry("Connected to " + serverName);
-			} else { // connection failed
-				guiClientFrame.appendLogEntry("Problems connecting to " + serverName);
+			if (guiClientFrame.getConnectionButton().getText().toString().equals("Connect")) {
+				// start connection
+				if (remoteServerInterface.clientConnect(this) == 1) {
+					guiClientFrame.appendLogEntry("Connected to " + serverName);
+					guiClientFrame.getConnectionButton().setText("Disconnect");
+				} else { // connection failed
+					guiClientFrame.appendLogEntry("Problems connecting to " + serverName);
+				}
+			} else {
+				// start disconnection
+				if (remoteServerInterface.clientDisconnect(this) == 0) {
+					guiClientFrame.appendLogEntry("Disconnected from " + serverName);
+					guiClientFrame.getConnectionButton().setText("Connect");
+				} else { // disconnection failed
+					guiClientFrame.appendLogEntry("Problems disconnecting to " + serverName);
+				}
 			}
-		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+		} catch (MalformedURLException | NotBoundException e) {
 			e.printStackTrace();
+		} catch (final RemoteException e) {
+			JOptionPane.showMessageDialog(guiClientFrame, "Server " + serverName + " unreachable.", "Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -79,6 +94,32 @@ public final class Client implements ClientInterface, ActionListener {
 	@Override
 	public Vector<Resource> getResources() {
 		return resources;
+	}
+
+	@Override
+	public void performSearch() {
+		// fileSearchTextField.requestFocus();
+		// if (fileSearchTextField.getValue() == null) {
+		// JOptionPane.showMessageDialog(this, "Please enter a file name.",
+		// "File name empty", JOptionPane.WARNING_MESSAGE);
+		// } else {
+		// if (client.getConnectionUpBoolean()) {
+		// appendLogEntry("Searching for: " + fileSearchTextField.getValue());
+		//
+		// final Resource searchedResource = new
+		// Resource(fileSearchTextField.getValue().toString());
+		//
+		// final Resource returnedResource =
+		// client.requestResource(searchedResource);
+		//
+		// // TODO check if != null
+		// // TODO
+		// // TODO avviare la ricerca e l eventuale download
+		// } else {
+		// JOptionPane.showMessageDialog(this, "Connect first.",
+		// "File name empty", JOptionPane.WARNING_MESSAGE);
+		// }
+		// }
 	}
 
 	@Override

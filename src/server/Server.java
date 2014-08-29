@@ -33,8 +33,10 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 		Integer functionResultInteger = -1;
 		Boolean alreadyPresentInteger = false;
 		for (int i = 0; i < connectedClients.size(); i++)
-			if (connectedClients.elementAt(i).getClientName() == paramClient.getClientName())
+			// check if client is already connected
+			if (connectedClients.elementAt(i).getClientName().equals(paramClient.toString()))
 				alreadyPresentInteger = true;
+
 		if (alreadyPresentInteger == false) {
 			connectedClients.add(paramClient);
 			guiServerFrame.appendLogEntry(paramClient.getClientName() + " connected.");
@@ -42,15 +44,25 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 		}
 		// update gui
 		guiServerFrame.setConnectedClientsList(connectedClients);
-		// guiServerFrame.setConnectedServersList(connectedServers);
+		guiServerFrame.setConnectedServersList(connectedServers);
 		return functionResultInteger;
 	}
 
 	@Override
 	// 0 if disconnection is done, -1 if something wrong
 	public Integer clientDisconnect(final ClientInterface paramClient) throws RemoteException {
-		final Integer functionResultInteger = -1;
+		Integer functionResultInteger = -1;
 
+		for (int i = 0; i < connectedClients.size(); i++) {
+			// check if client is connected
+			if (connectedClients.elementAt(i).getClientName().equals(paramClient.toString())) {
+				connectedClients.remove(i);
+				functionResultInteger = 0;
+			}
+		}
+		// update gui
+		guiServerFrame.setConnectedClientsList(connectedClients);
+		guiServerFrame.setConnectedServersList(connectedServers);
 		return functionResultInteger;
 	}
 

@@ -105,32 +105,6 @@ public final class ClientFrame extends AbstractBasicFrame {
 		return fileSearchTextField;
 	}
 
-	private void performSearch() { // va implemntate nel client non nell
-		// view!!!!!!!!!!!
-		// fileSearchTextField.requestFocus();
-		// if (fileSearchTextField.getValue() == null) {
-		// JOptionPane.showMessageDialog(this, "Please enter a file name.",
-		// "File name empty", JOptionPane.WARNING_MESSAGE);
-		// } else {
-		// if (client.getConnectionUpBoolean()) {
-		// appendLogEntry("Searching for: " + fileSearchTextField.getValue());
-		//
-		// final Resource searchedResource = new
-		// Resource(fileSearchTextField.getValue().toString());
-		//
-		// final Resource returnedResource =
-		// client.requestResource(searchedResource);
-		//
-		// // TODO check if != null
-		// // TODO
-		// // TODO avviare la ricerca e l eventuale download
-		// } else {
-		// JOptionPane.showMessageDialog(this, "Connect first.",
-		// "File name empty", JOptionPane.WARNING_MESSAGE);
-		// }
-		// }
-	}
-
 	public void setDownloadQueueList(final Vector<ResourcePart> paramResourcePart) {
 		final DefaultListModel<ResourcePart> model = new DefaultListModel<ResourcePart>();
 		for (int i = 0; i < paramResourcePart.size(); i++) {

@@ -22,6 +22,8 @@ public interface ClientInterface extends Serializable {
 	 */
 	public Vector<Resource> getResources();
 
+	public void performSearch();
+
 	/**
 	 * @return true if and only if the connection is up.
 	 */
