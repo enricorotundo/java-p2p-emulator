@@ -2,6 +2,8 @@ package client;
 
 import gui.ClientFrame;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
@@ -12,7 +14,7 @@ import resource.Resource;
 import resource.part.ResourcePart;
 import server.ServerInterface;
 
-public final class Client implements ClientInterface {
+public final class Client implements ClientInterface, ActionListener {
 
 	private static final long serialVersionUID = 6917781270556644082L;
 	private Vector<Resource> resources = new Vector<Resource>();
@@ -30,9 +32,23 @@ public final class Client implements ClientInterface {
 		downloadCapacitInteger = paramDownloadCapacity;
 		resources = paramResources;
 		guiClientFrame = new ClientFrame(name);
+		guiClientFrame.getConnectionButton().addActionListener(this);
+		guiClientFrame.getFileSearchButton().addActionListener(this);
 		// update gui
 		guiClientFrame.setResourceList(paramResources);
 		guiClientFrame.setDownloadQueueList(downloadingParts);
+	}
+
+	@Override
+	public void actionPerformed(final ActionEvent e) {
+		guiClientFrame.getFileSearchTextField().requestFocus();
+		if ("search".equals(e.getActionCommand())) {
+			// performSearch(); // va implemntate nel client non nell view
+		}
+
+		if ("connection".equals(e.getActionCommand())) {
+			connectToServer();
+		}
 	}
 
 	@Override

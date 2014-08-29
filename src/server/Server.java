@@ -22,6 +22,7 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 	public Server(final String paramServerName) throws RemoteException {
 		serverNameString = paramServerName;
 		guiServerFrame = new ServerFrame(paramServerName);
+		// update gui
 		guiServerFrame.setConnectedClientsList(connectedClients);
 		guiServerFrame.setConnectedServersList(connectedServers);
 	}
@@ -39,6 +40,9 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 			guiServerFrame.appendLogEntry(paramClient.getClientName() + " connected.");
 			functionResultInteger = 1;
 		}
+		// update gui
+		guiServerFrame.setConnectedClientsList(connectedClients);
+		guiServerFrame.setConnectedServersList(connectedServers);
 		return functionResultInteger;
 	}
 

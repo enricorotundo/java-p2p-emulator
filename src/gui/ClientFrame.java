@@ -2,8 +2,6 @@ package gui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.text.ParseException;
 import java.util.Vector;
 
@@ -19,7 +17,7 @@ import resource.Resource;
 import resource.ResourceInterface.ResourceName;
 import resource.part.ResourcePart;
 
-public final class ClientFrame extends AbstractBasicFrame implements ActionListener {
+public final class ClientFrame extends AbstractBasicFrame {
 	private JPanel searchFilePanel;
 	protected JPanel resourcesPanel;
 	protected JPanel downloadQueuePanel;
@@ -41,11 +39,9 @@ public final class ClientFrame extends AbstractBasicFrame implements ActionListe
 		connectionButton.setPreferredSize(new Dimension(150, 50));
 		connectionButton.setActionCommand("connection");
 		connectionButton.setToolTipText("Connect/disconnect from the network.");
-		connectionButton.addActionListener(this);
 		fileSearchButton = new JButton("Search");
 		fileSearchButton.setActionCommand("search");
 		fileSearchButton.setToolTipText("Start searching the file in the network.");
-		fileSearchButton.addActionListener(this);
 		try {
 			fileSearchTextField = new JFormattedTextField(ResourceName.getMask());
 		} catch (final ParseException e) {
@@ -97,15 +93,16 @@ public final class ClientFrame extends AbstractBasicFrame implements ActionListe
 		setVisible(true);
 	}
 
-	@Override
-	public void actionPerformed(final ActionEvent e) {
-		if ("search".equals(e.getActionCommand()))
-			performSearch(); // va implemntate nel client non nell view
-		// !!!!!!!!!!!!!
-		else if ("connection".equals(e.getActionCommand())) {
-			fileSearchTextField.requestFocus();
-			// client.connectToServer();
-		}
+	public JButton getConnectionButton() {
+		return connectionButton;
+	}
+
+	public JButton getFileSearchButton() {
+		return fileSearchButton;
+	}
+
+	public JFormattedTextField getFileSearchTextField() {
+		return fileSearchTextField;
 	}
 
 	private void performSearch() { // va implemntate nel client non nell
