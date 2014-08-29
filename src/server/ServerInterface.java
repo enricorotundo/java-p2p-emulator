@@ -1,5 +1,7 @@
 package server;
 
+import java.net.MalformedURLException;
+import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.Vector;
@@ -23,6 +25,8 @@ public interface ServerInterface extends Remote {
 	 * @throws RemoteException
 	 */
 	public Integer clientDisconnect(ClientInterface paramClient) throws RemoteException;
+
+	public void disconnect() throws NotBoundException, MalformedURLException, RemoteException;
 
 	/**
 	 * @return all servers connected to the system

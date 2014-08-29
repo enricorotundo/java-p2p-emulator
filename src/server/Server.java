@@ -2,7 +2,9 @@ package server;
 
 import gui.ServerFrame;
 
+import java.net.MalformedURLException;
 import java.rmi.Naming;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
@@ -61,6 +63,16 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 		// update gui
 		guiServerFrame.setConnectedClientsList(connectedClients);
 		guiServerFrame.setConnectedServersList(connectedServers);
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				try {
+					disconnect();
+				} catch (MalformedURLException | RemoteException | NotBoundException e) {
+					e.printStackTrace();
+				}
+			}
+		});
 		srvChecker.start();
 
 	}
@@ -100,6 +112,13 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 		// update gui
 		guiServerFrame.setConnectedClientsList(connectedClients);
 		return functionResultInteger;
+	}
+
+	@Override
+	public void disconnect() throws NotBoundException, MalformedURLException, RemoteException {
+		// synchronized (sync) {
+		Naming.unbind("rmi://" + HOST + "/Server/" + serverNameString);
+		// }
 	}
 
 	@Override
