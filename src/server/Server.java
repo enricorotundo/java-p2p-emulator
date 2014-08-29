@@ -2,6 +2,7 @@ package server;
 
 import gui.ServerFrame;
 
+import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
@@ -12,12 +13,47 @@ import client.ClientInterface;
 
 public final class Server extends UnicastRemoteObject implements ServerInterface {
 
+	private class ServerChecker extends Thread {
+		public ServerChecker() { setDaemon(true); }
+
+		private void checkOtherServers() throws Exception {
+			// synchronized (monitor) {
+			final String[] list = Naming.list("rmi://" + HOST + "/Server/");
+			connectedServers.clear();
+			for (final String string : list) {
+				final ServerInterface srvInterface = (ServerInterface) Naming.lookup(string);
+				connectedServers.add(srvInterface);
+			}
+			// update gui
+			guiServerFrame.setConnectedServersList(connectedServers);
+			// }
+		}
+
+		@Override
+		public void run() {
+			while (true) {
+				// synchronized (monitor) {
+				try {
+					checkOtherServers();
+				} catch (final Exception e) {
+					e.printStackTrace();
+				}
+				try {
+					sleep(10);
+				} catch (final InterruptedException e) {
+					System.out.println("Interrupted ServerChecker thread.");
+				}
+				// }
+			}
+		}
+	}
 	private static final long serialVersionUID = -2240153419231304793L;
 	private static final String HOST = "localhost";
 	private String serverNameString = "";
 	private ServerFrame guiServerFrame = null;
 	private Vector<ClientInterface> connectedClients = new Vector<ClientInterface>();
 	private Vector<ServerInterface> connectedServers = new Vector<ServerInterface>();
+	private ServerChecker srvChecker = new ServerChecker();
 
 	public Server(final String paramServerName) throws RemoteException {
 		serverNameString = paramServerName;
@@ -25,6 +61,8 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 		// update gui
 		guiServerFrame.setConnectedClientsList(connectedClients);
 		guiServerFrame.setConnectedServersList(connectedServers);
+		srvChecker.start();
+
 	}
 
 	@Override
@@ -44,7 +82,6 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 		}
 		// update gui
 		guiServerFrame.setConnectedClientsList(connectedClients);
-		guiServerFrame.setConnectedServersList(connectedServers);
 		return functionResultInteger;
 	}
 
@@ -62,7 +99,6 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 		}
 		// update gui
 		guiServerFrame.setConnectedClientsList(connectedClients);
-		guiServerFrame.setConnectedServersList(connectedServers);
 		return functionResultInteger;
 	}
 
@@ -101,5 +137,10 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 	@Override
 	public String getServerUrl() throws RemoteException {
 		return "rmi://" + HOST + "/Server/" + serverNameString;
+	}
+
+	@Override
+	public String toString() {
+		return serverNameString;
 	}
 }
