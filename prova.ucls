@@ -102,7 +102,7 @@
   <association id="13">    
     <bendpoint x="558" y="427"/>    
     <end type="SOURCE" refId="4" navigable="false">      
-      <attribute id="14" name="myConnectedClients"/>      
+      <attribute id="14" name="connectedClients"/>      
       <multiplicity id="15" minimum="0" maximum="2147483647"/>    
     </end>    
     <end type="TARGET" refId="2" navigable="true"/>    
@@ -134,7 +134,7 @@
   </association>  
   <association id="23">    
     <end type="SOURCE" refId="4" navigable="false">      
-      <attribute id="24" name="servers"/>      
+      <attribute id="24" name="connectedServers"/>      
       <multiplicity id="25" minimum="0" maximum="2147483647"/>    
     </end>    
     <end type="TARGET" refId="3" navigable="true"/>    

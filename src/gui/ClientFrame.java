@@ -3,183 +3,150 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.text.ParseException;
+import java.util.Vector;
 
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFormattedTextField;
 import javax.swing.JList;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import resource.Resource;
 import resource.ResourceInterface.ResourceName;
 import resource.part.ResourcePart;
-import client.Client;
 
-public final class ClientFrame extends AbstractBasicFrame {
+public final class ClientFrame extends AbstractBasicFrame implements ActionListener {
 	private JPanel searchFilePanel;
-	protected JPanel westPanel;
-	protected JPanel eastPanel;
-	private JList<Resource> completeFilesList;
+	protected JPanel resourcesPanel;
+	protected JPanel downloadQueuePanel;
+	private JList<Resource> completeResourcesList;
 	private JList<ResourcePart> downloadQueueList;
 	private JFormattedTextField fileSearchTextField;
 	private JButton connectionButton;
 	private JButton fileSearchButton;
-	private final Client client;
 	public static final long serialVersionUID = 43L;
 
-	public ClientFrame(final String s, final Client paramClient) {
+	public ClientFrame(final String s) {
 		super(s);
-		client = paramClient;
 		setSize(new Dimension(600, 500));
-		setTopPanel();
-		setWestPanel();
-		setEastPanel();
 
-		contentPane.add(westPanel, BorderLayout.LINE_START);
-		contentPane.add(eastPanel, BorderLayout.LINE_END);
-		setContentPane(contentPane);
-	}
-
-	@Override
-	public void actionPerformed(final ActionEvent e) {
-		if ("search".equals(e.getActionCommand()))
-			performSearch();
-		else if ("connection".equals(e.getActionCommand()))
-			performConnection();
-	}
-
-	public JList<Resource> getCompleteFilesList() {
-		return completeFilesList;
-	}
-
-	public JList<ResourcePart> getDownloadQueueList() {
-		return downloadQueueList;
-	}
-
-	private void performConnection() {
-		fileSearchTextField.requestFocus();
-		client.connect();
-	}
-
-	private void performSearch() {
-		fileSearchTextField.requestFocus();
-		if (fileSearchTextField.getValue() == null) {
-			JOptionPane.showMessageDialog(this, "Please enter a file name.", "File name empty", JOptionPane.WARNING_MESSAGE);
-		} else {
-			if (client.getConnectionUpBoolean()) {
-				appendLogEntry("Searching for: " + fileSearchTextField.getValue());
-
-				final Resource searchedResource = new Resource(fileSearchTextField.getValue().toString());
-
-				final Resource returnedResource = client.requestResource(searchedResource);
-
-				// TODO check if != null
-				// TODO
-				// TODO avviare la ricerca e l eventuale download
-			} else {
-				JOptionPane.showMessageDialog(this, "Connect first.", "File name empty", JOptionPane.WARNING_MESSAGE);
-			}
-		}
-	}
-
-	/**
-	 * @param completeFilesList
-	 *            the completeFilesList to set
-	 */
-	public void setCompleteFilesList(final JList<Resource> completeFilesList) {
-		this.completeFilesList = completeFilesList;
-	}
-
-	public void setConnectionButtonText(final String paramText) {
-		connectionButton.setText(paramText);
-	}
-
-	public void setDownloadQueueList(final JList<ResourcePart> downloadQueueList) {
-		this.downloadQueueList = downloadQueueList;
-	}
-
-	protected void setEastPanel() {
-		eastPanel = new JPanel();
-		eastPanel.setOpaque(true);
-		eastPanel.setBorder(BorderFactory.createTitledBorder("Download queue"));
-		eastPanel.setLayout(new BorderLayout());
-
-		downloadQueueList = new JList<ResourcePart>(client.getDownloadingParts());
-		downloadQueueList.setPreferredSize(new Dimension(getWidth() / 2 - 80, 270));
-
-		final JScrollPane areaScrollPane = new JScrollPane(downloadQueueList);
-		areaScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-		areaScrollPane.setPreferredSize(new Dimension(280, 250));
-		areaScrollPane.setVisible(true);
-
-		eastPanel.add(areaScrollPane, BorderLayout.CENTER);
-	}
-
-	@Override
-	protected void setTopPanel() {
+		// setting top panel
 		topPanel = new JPanel();
 		topPanel.setOpaque(true);
-
 		connectionButton = new JButton("Connect");
 		connectionButton.setPreferredSize(new Dimension(150, 50));
 		connectionButton.setActionCommand("connection");
 		connectionButton.setToolTipText("Connect/disconnect from the network.");
 		connectionButton.addActionListener(this);
-
-		try {
-			setTopSubPanels();
-		} catch (final Exception e) {
-			e.printStackTrace();
-		}
-
-		topPanel.add(searchFilePanel, BorderLayout.LINE_START);
-		topPanel.add(connectionButton, BorderLayout.LINE_END);
-	}
-
-	/**
-	 * <code>setTopSubPanels</code> sets in the top panel a paneled JTextArea
-	 * and JButton, and an unpaneled JButton to "disconnect" the client.
-	 *
-	 * @throws ParseException
-	 */
-	@Override
-	protected void setTopSubPanels() throws ParseException {
 		fileSearchButton = new JButton("Search");
 		fileSearchButton.setActionCommand("search");
 		fileSearchButton.setToolTipText("Start searching the file in the network.");
 		fileSearchButton.addActionListener(this);
-
-		fileSearchTextField = new JFormattedTextField(ResourceName.getMask());
+		try {
+			fileSearchTextField = new JFormattedTextField(ResourceName.getMask());
+		} catch (final ParseException e) {
+			e.printStackTrace();
+		}
 		fileSearchTextField.setEditable(true);
 		fileSearchTextField.setColumns(2);
 		fileSearchTextField.setToolTipText("File name is like \"A 3\"");
-
 		searchFilePanel = new JPanel();
 		searchFilePanel.setOpaque(true);
 		searchFilePanel.setBorder(BorderFactory.createTitledBorder("File search"));
 		searchFilePanel.setLayout(new BorderLayout());
-
 		searchFilePanel.add(fileSearchTextField, BorderLayout.LINE_START);
 		searchFilePanel.add(fileSearchButton, BorderLayout.LINE_END);
-	}
+		topPanel.add(searchFilePanel, BorderLayout.LINE_START);
+		topPanel.add(connectionButton, BorderLayout.LINE_END);
+		mainPanel.add(topPanel, BorderLayout.PAGE_START);
 
-	protected void setWestPanel() {
-		westPanel = new JPanel();
-		westPanel.setOpaque(true);
-		westPanel.setBorder(BorderFactory.createTitledBorder("Entire Resources"));
-		westPanel.setLayout(new BorderLayout());
-
-		completeFilesList = new JList<Resource>(client.getResources());
-		completeFilesList.setPreferredSize(new Dimension(getWidth() / 2 - 80, 270));
-
-		final JScrollPane areaScrollPane = new JScrollPane(completeFilesList);
+		// setting west panel
+		resourcesPanel = new JPanel();
+		resourcesPanel.setOpaque(true);
+		resourcesPanel.setBorder(BorderFactory.createTitledBorder("Entire Resources"));
+		resourcesPanel.setLayout(new BorderLayout());
+		completeResourcesList = new JList<Resource>();
+		completeResourcesList.setPreferredSize(new Dimension(getWidth() / 2 - 80, 270));
+		final JScrollPane areaScrollPane = new JScrollPane(completeResourcesList);
 		areaScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		areaScrollPane.setPreferredSize(new Dimension(280, 250));
 		areaScrollPane.setVisible(true);
+		resourcesPanel.add(areaScrollPane, BorderLayout.CENTER);
+		mainPanel.add(resourcesPanel, BorderLayout.LINE_START);
 
-		westPanel.add(areaScrollPane, BorderLayout.CENTER);
+		// setting east panel
+		downloadQueuePanel = new JPanel();
+		downloadQueuePanel.setOpaque(true);
+		downloadQueuePanel.setBorder(BorderFactory.createTitledBorder("Download queue"));
+		downloadQueuePanel.setLayout(new BorderLayout());
+		downloadQueueList = new JList<ResourcePart>();
+		downloadQueueList.setPreferredSize(new Dimension(getWidth() / 2 - 80, 270));
+		final JScrollPane areaScrollPane1 = new JScrollPane(downloadQueueList);
+		areaScrollPane1.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		areaScrollPane1.setPreferredSize(new Dimension(280, 250));
+		areaScrollPane1.setVisible(true);
+		downloadQueuePanel.add(areaScrollPane1, BorderLayout.CENTER);
+		mainPanel.add(downloadQueuePanel, BorderLayout.LINE_END);
+
+		setContentPane(mainPanel);
+		pack();
+		setVisible(true);
+	}
+
+	@Override
+	public void actionPerformed(final ActionEvent e) {
+		if ("search".equals(e.getActionCommand()))
+			performSearch(); // va implemntate nel client non nell view
+		// !!!!!!!!!!!!!
+		else if ("connection".equals(e.getActionCommand())) {
+			fileSearchTextField.requestFocus();
+			// client.connectToServer();
+		}
+	}
+
+	private void performSearch() { // va implemntate nel client non nell
+		// view!!!!!!!!!!!
+		// fileSearchTextField.requestFocus();
+		// if (fileSearchTextField.getValue() == null) {
+		// JOptionPane.showMessageDialog(this, "Please enter a file name.",
+		// "File name empty", JOptionPane.WARNING_MESSAGE);
+		// } else {
+		// if (client.getConnectionUpBoolean()) {
+		// appendLogEntry("Searching for: " + fileSearchTextField.getValue());
+		//
+		// final Resource searchedResource = new
+		// Resource(fileSearchTextField.getValue().toString());
+		//
+		// final Resource returnedResource =
+		// client.requestResource(searchedResource);
+		//
+		// // TODO check if != null
+		// // TODO
+		// // TODO avviare la ricerca e l eventuale download
+		// } else {
+		// JOptionPane.showMessageDialog(this, "Connect first.",
+		// "File name empty", JOptionPane.WARNING_MESSAGE);
+		// }
+		// }
+	}
+
+	public void setDownloadQueueList(final Vector<ResourcePart> paramResourcePart) {
+		final DefaultListModel<ResourcePart> model = new DefaultListModel<ResourcePart>();
+		for (int i = 0; i < paramResourcePart.size(); i++) {
+			model.addElement(paramResourcePart.elementAt(i));
+		}
+		downloadQueueList.setModel(model);
+	}
+
+	public void setResourceList(final Vector<Resource> paramResources) {
+		final DefaultListModel<Resource> model = new DefaultListModel<Resource>();
+		for (int i = 0; i < paramResources.size(); i++) {
+			model.addElement(paramResources.elementAt(i));
+		}
+		completeResourcesList.setModel(model);
 	}
 }

@@ -12,14 +12,14 @@ public interface ServerInterface extends Remote {
 
 	/**
 	 * @param paramClient
-	 * @return if connection success returns 1, if something wrong returns 0
+	 * @return if connection success returns 1, if something wrong returns -1
 	 * @throws RemoteException
 	 */
 	public Integer clientConnect(ClientInterface paramClient) throws RemoteException;
 
 	/**
 	 * @param paramClient
-	 * @return 1 if disconnection is done, -1 if something wrong
+	 * @return 0 if disconnection is done, -1 if something wrong
 	 * @throws RemoteException
 	 */
 	public Integer clientDisconnect(ClientInterface paramClient) throws RemoteException;
