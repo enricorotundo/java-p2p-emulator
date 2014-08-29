@@ -48,6 +48,8 @@ public final class Resource implements ResourceInterface {
 		return rndInteger;
 	}
 
+	private static final long serialVersionUID = -8240063610816799938L;
+
 	private final ResourceName name;
 	private final Vector<ResourcePart> resourceParts;
 	private static Random randomGenerator = new Random();

@@ -1,5 +1,6 @@
 package resource;
 
+import java.io.Serializable;
 import java.text.ParseException;
 import java.util.Vector;
 
@@ -7,7 +8,7 @@ import javax.swing.text.MaskFormatter;
 
 import resource.part.ResourcePart;
 
-public interface ResourceInterface {
+public interface ResourceInterface extends Serializable {
 
 	/**
 	 * Used when a client search a file: textbox string is converted in a
@@ -16,7 +17,7 @@ public interface ResourceInterface {
 	 *
 	 * @author erotundo
 	 */
-	public class ResourceName {
+	public class ResourceName implements Serializable {
 
 		/**
 		 * Creates the formatter.
@@ -25,8 +26,7 @@ public interface ResourceInterface {
 		 *            is a string like "U #"
 		 * @return the mask formatter
 		 */
-		final protected static MaskFormatter createFormatter(
-				final String paramStringMask) {
+		final protected static MaskFormatter createFormatter(final String paramStringMask) {
 			final MaskFormatter formatter = new MaskFormatter();
 			try {
 				formatter.setMask(paramStringMask);
@@ -47,6 +47,8 @@ public interface ResourceInterface {
 		public final static MaskFormatter getMask() throws ParseException {
 			return createFormatter("U #");
 		}
+
+		private static final long serialVersionUID = 6549872704452284682L;
 
 		private Character resourceName;
 		private Integer numberOfParts = 0;

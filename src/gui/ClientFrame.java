@@ -34,6 +34,7 @@ public final class ClientFrame extends AbstractBasicFrame {
 		super(s);
 		client = paramClient;
 		setSize(new Dimension(600, 500));
+		setTopPanel();
 		setWestPanel();
 		setEastPanel();
 
@@ -60,22 +61,7 @@ public final class ClientFrame extends AbstractBasicFrame {
 
 	private void performConnection() {
 		fileSearchTextField.requestFocus();
-		appendLogEntry("Connection button pressed.");
-		final Integer connectionResultInteger = client.connect();
-		if (connectionResultInteger == 1) {
-			appendLogEntry("Connection done.");
-			setConnectionButtonText("Disconnect");
-		} else {
-			if (connectionResultInteger == 0) {
-				appendLogEntry("Disconnection done.");
-				setConnectionButtonText("Connect");
-			} else {
-				if (connectionResultInteger == -1) {
-					appendLogEntry("Connect/Disconnect something wrong.");
-					setConnectionButtonText("Connect?");
-				}
-			}
-		}
+		client.connect();
 	}
 
 	private void performSearch() {
@@ -107,7 +93,7 @@ public final class ClientFrame extends AbstractBasicFrame {
 		this.completeFilesList = completeFilesList;
 	}
 
-	private void setConnectionButtonText(final String paramText) {
+	public void setConnectionButtonText(final String paramText) {
 		connectionButton.setText(paramText);
 	}
 

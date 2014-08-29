@@ -6,6 +6,7 @@ public final class ResourcePart implements ResourcePartInterface { // Josh
 	// Bloch's:
 	// "design for inheritance or prohibit it"
 
+	private static final long serialVersionUID = 6463128579315535109L;
 	private Integer partNumber = 0;
 	private Resource ownerResource;
 	private TransfertStatus downloadingStatus;

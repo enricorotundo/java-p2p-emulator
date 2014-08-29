@@ -11,11 +11,7 @@ public class ServerStarter {
 		} else {
 			try {
 				final Server server = new Server(args[0]);
-
-				Naming.rebind("oo", server);
-
-
-
+				Naming.rebind(server.getServerUrl(), server);
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}

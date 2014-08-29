@@ -17,37 +17,52 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 	private static final String HOST = "localhost";
 	private String serverNameString = "";
 
-	private ServerFrame myFrame = null;
+	private ServerFrame guiServerFrame = null;
 
 	private Vector<ClientInterface> myConnectedClients = new Vector<ClientInterface>();
-	Vector<ServerInterface> servers = new Vector<ServerInterface>();
+	private Vector<ServerInterface> servers = new Vector<ServerInterface>();
 
 	public Server(final String paramServerName) throws RemoteException {
-		myFrame = new ServerFrame(paramServerName);
-		myFrame.appendLogEntry("Buliding server...");
 		serverNameString = paramServerName;
 
-		for (final ClientInterface clientInterface : myConnectedClients) {
-			myFrame.appendLogEntry(clientInterface.getClientName());
-		}
-
+		guiServerFrame = new ServerFrame(paramServerName, this);
+		guiServerFrame.appendLogEntry("Buliding server at " + getServerUrl());
+		// for (final ClientInterface clientInterface : myConnectedClients) {
+		// myFrame.appendLogEntry(clientInterface.getClientName());
+		// }
 	}
 
 	@Override
 	public Integer clientConnect(final ClientInterface paramClient) throws RemoteException {
-		if (myConnectedClients.contains(paramClient)) {
+		if (myConnectedClients.contains(paramClient) == true) {
 			System.out.println("Client " + paramClient.getClientName() + " already connected!");
 			return 0;
 		} else {
 			myConnectedClients.add(paramClient);
+			for (int i = 0; i < myConnectedClients.size(); i++) {
+				System.out.println(myConnectedClients.elementAt(i).getClientName());
+			}
+			System.out.println("Client " + paramClient.getClientName() + " connected.");
+			guiServerFrame.appendLogEntry(paramClient.getClientName() + " connected.");
 			return 1;
 		}
 	}
 
 	@Override
-	public void clientDisconnect(final ClientInterface paramClient) throws RemoteException {
-		// TODO Auto-generated method stub
-
+	public Integer clientDisconnect(final ClientInterface paramClient) throws RemoteException {
+		Integer functionResultInteger = -1;
+		for (int i = 0; i < myConnectedClients.size(); i++) {
+			System.out.println(myConnectedClients.elementAt(i).getClientName());
+		}
+		for (int i = 0; i < myConnectedClients.size(); i++) {
+			if (paramClient.getClientName() == myConnectedClients.elementAt(i).getClientName()) {
+				myConnectedClients.removeElementAt(i);
+				System.out.println("Client " + paramClient.getClientName() + " disconnected.");
+				functionResultInteger = 1;
+			}
+		}
+		System.out.println("clientDisconnect(..), retruned value: " + functionResultInteger);
+		return functionResultInteger;
 	}
 
 	@Override

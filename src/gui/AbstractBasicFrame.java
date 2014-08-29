@@ -3,6 +3,7 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
+import java.sql.Timestamp;
 import java.text.ParseException;
 
 import javax.swing.BorderFactory;
@@ -38,8 +39,9 @@ public abstract class AbstractBasicFrame extends JFrame implements ActionListene
 	 * @param logEntry is the String to be inserted into the log.
 	 */
 	public void appendLogEntry(String logEntry) {
+		final java.util.Date date = new java.util.Date();
 		logEntry += "\n";
-		log.insert(logEntry, log.getSelectionEnd());
+		log.insert(new Timestamp(date.getTime()).toString().substring(11) + ": " + logEntry, log.getSelectionEnd());
 	}
 
 	protected final void setBottomPanel() {

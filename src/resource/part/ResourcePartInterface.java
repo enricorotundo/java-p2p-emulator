@@ -1,6 +1,8 @@
 package resource.part;
 
-public interface ResourcePartInterface {
+import java.io.Serializable;
+
+public interface ResourcePartInterface extends Serializable {
 	/**
 	 * Gets the part number.
 	 *

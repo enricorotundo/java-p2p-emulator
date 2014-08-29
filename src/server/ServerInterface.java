@@ -17,7 +17,12 @@ public interface ServerInterface extends Remote {
 	 */
 	public Integer clientConnect(ClientInterface paramClient) throws RemoteException;
 
-	public void clientDisconnect(ClientInterface paramClient) throws RemoteException;
+	/**
+	 * @param paramClient
+	 * @return 1 if disconnection is done, -1 if something wrong
+	 * @throws RemoteException
+	 */
+	public Integer clientDisconnect(ClientInterface paramClient) throws RemoteException;
 
 	/**
 	 * @return all servers connected to the system

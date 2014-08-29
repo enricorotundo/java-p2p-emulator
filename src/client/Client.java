@@ -2,12 +2,17 @@ package client;
 
 import gui.ClientFrame;
 
+import java.rmi.Naming;
+import java.rmi.RemoteException;
 import java.util.Vector;
 
 import resource.Resource;
 import resource.part.ResourcePart;
+import server.ServerInterface;
 
 public final class Client implements ClientInterface {
+
+	private static final long serialVersionUID = 6917781270556644082L;
 
 	private Vector<Resource> resources = new Vector<Resource>();
 
@@ -21,61 +26,35 @@ public final class Client implements ClientInterface {
 	private String serverName;
 	private static final String HOST = "localhost";
 
-	public Client(final String paramClientName, final String paramServerName, final Integer paramDownloadCapacity, final Vector<Resource> paramResources) {
+	public Client(final String paramClientName, final String paramServerName, final Integer paramDownloadCapacity, final Vector<Resource> paramResources) throws RemoteException {
 		name = paramClientName;
 		serverName = paramServerName;
 		downloadCapacitInteger = paramDownloadCapacity;
 		resources = paramResources;
-		guiClientFrame = createClientFrame(); // last one
+		guiClientFrame = new ClientFrame(name, this); // last one
 	}
 
 	@Override
 	public Integer connect() {
-		if (connectionUpBoolean) {
-			// disconnection
-			connectionUpBoolean = false;
-			return Integer.valueOf(0);
-			// TODO: tornare -1 se qualcosa va storno
-		} else {
-			// connection
-
-			try {
-				// guiClientFrame.appendLogEntry("Trying to connect with " +
-				// "rmi://" + HOST + "/Server/" + serverName);
-				// final ServerInterface serverRemoteInterface =
-				// (ServerInterface) Naming.lookup("rmi://" + HOST + "/Server/"
-				// + serverName);
-				//
-				// if (serverRemoteInterface.clientConnect(this) == 1) {
-				// guiClientFrame.appendLogEntry("Succesfully connected to " +
-				// serverRemoteInterface.getServerUrl());
-				// } else {
-				// guiClientFrame.appendLogEntry("Unable to connect with " +
-				// serverRemoteInterface.getServerUrl());
-				// }
-
-			} catch (final Exception e) {
-				e.printStackTrace();
+		final Integer functionResultInteger = -1;
+		System.out.println("Start: connect() connectionUpBoolean = " + connectionUpBoolean);
+		try {
+			final ServerInterface serverRemoteInterface = (ServerInterface) Naming.lookup("rmi://" + HOST + "/Server/" + serverName);
+			if (connectionUpBoolean == false) { // connection
+				serverRemoteInterface.clientConnect(this);
+				connectionUpBoolean = true;
+				guiClientFrame.setConnectionButtonText("Disconnect");
+			} else { // disconnection
+				serverRemoteInterface.clientDisconnect(this);
+				connectionUpBoolean = false;
+				guiClientFrame.setConnectionButtonText("Connect");
 			}
-
-			// serverConnected = ref;
-			// ref.appendLog("Client " + getClientName() + " connesso");
-			// sc = new ServerChecker(); sc.start();
-			//
-			connectionUpBoolean = true;
-			return Integer.valueOf(1);
-			// TODO: tornare -1 se qualcosa va storno
+		} catch (final Exception e) {
+			e.printStackTrace();
 		}
-	}
-
-	private ClientFrame createClientFrame() {
-		final ClientFrame clientFrame = new ClientFrame(name, this);
-
-		// clientFrame.appendLogEntry("Creating client... ");
-		// clientFrame.appendLogEntry("Starting creating resources...");
-		// resources = Resource.createRandomResourceVector();
-		// clientFrame.appendLogEntry("Resources created.");
-		return clientFrame;
+		System.out.println("End: connect() functionResultInteger = " + functionResultInteger);
+		guiClientFrame.repaint();
+		return functionResultInteger;
 	}
 
 	@Override

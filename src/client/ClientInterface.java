@@ -1,10 +1,11 @@
 package client;
 
+import java.io.Serializable;
 import java.util.Vector;
 
 import resource.Resource;
 
-public interface ClientInterface {
+public interface ClientInterface extends Serializable {
 	/**
 	 * Connect the client to the p2p system.
 	 *
