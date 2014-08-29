@@ -42,7 +42,7 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 		}
 		// update gui
 		guiServerFrame.setConnectedClientsList(connectedClients);
-		guiServerFrame.setConnectedServersList(connectedServers);
+		// guiServerFrame.setConnectedServersList(connectedServers);
 		return functionResultInteger;
 	}
 
