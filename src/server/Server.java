@@ -194,11 +194,12 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 		final Vector<ClientInterface> searchedResourceOweners = new Vector<ClientInterface>();
 		synchronized (serversMonitor) {
 			for (final ServerInterface serverInterface : connectedServers) {
-				for (final ClientInterface cli : serverInterface.getClients()) { // sync
-					// client
-					// side
+				for (final ClientInterface cli : serverInterface.getClients()) { //
+					// sync client side
+					guiServerFrame.appendLogEntry("Looking for " + paramResource.toString() + " in " + cli.getClientName() + "@" + serverInterface.getServerNameString());
 					for (final ResourceInterface resource : cli.getResources()) {
 						if (resource.toString().equals(paramResource.toString())) {
+							guiServerFrame.appendLogEntry(cli.getClientName() + "@" + serverInterface.getServerNameString() + " has " + resource.toString());
 							searchedResourceOweners.add(cli);
 						}
 					}

@@ -16,6 +16,8 @@ public abstract class AbstractBasicFrame extends JFrame {
 	protected JPanel bottomPanel;
 	protected JTextArea log;
 	public static final long serialVersionUID = 42L;
+	private Object consoleMonitor = new Object();
+
 	public AbstractBasicFrame(final String paramFrameNameString) {
 		super(paramFrameNameString);
 		setSize(new Dimension(400, 500));
@@ -34,6 +36,7 @@ public abstract class AbstractBasicFrame extends JFrame {
 		bottomPanel.setBorder(BorderFactory.createTitledBorder("Log"));
 		bottomPanel.setLayout(new BorderLayout());
 		log = new JTextArea();
+		log.setCaretPosition(0);
 		log.setLineWrap(true);
 		log.setRows(10);
 		log.setEditable(false);
@@ -49,9 +52,10 @@ public abstract class AbstractBasicFrame extends JFrame {
 	 * Insert a new entry in the log area with a carriage return at the end.
 	 * @param logEntry is the String to be inserted into the log.
 	 */
-	public void appendLogEntry(String logEntry) {
-		final java.util.Date date = new java.util.Date();
-		logEntry += "\n";
-		log.insert(new Timestamp(date.getTime()).toString().substring(11) + ": " + logEntry, log.getSelectionEnd());
+	public void appendLogEntry(final String logEntry) {
+		synchronized (consoleMonitor) {
+			final java.util.Date date = new java.util.Date();
+			log.insert(new Timestamp(date.getTime()).toString().substring(11) + ": " + logEntry + "\n", 0);
+		}
 	}
 }

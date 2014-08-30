@@ -33,7 +33,7 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 		serverName = paramServerName;
 		downloadCapacityInteger = paramDownloadCapacity;
 		resources = paramResources;
-		guiClientFrame = new ClientFrame(name);
+		guiClientFrame = new ClientFrame(name + "@" + serverName);
 		guiClientFrame.getConnectionButton().addActionListener(this);
 		guiClientFrame.getFileSearchButton().addActionListener(this);
 		connectToServer();
@@ -95,6 +95,11 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 	}
 
 	@Override
+	public String getConnectedServer() throws RemoteException {
+		return serverName;
+	}
+
+	@Override
 	public Vector<Resource> getResources() {
 		return resources;
 	}
@@ -106,27 +111,44 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 		} else {
 			if (guiClientFrame.getConnectionButton().getText().toString().equals("Disconnect")) {
 				guiClientFrame.appendLogEntry("Searching for: " + guiClientFrame.getFileSearchTextField().getValue());
-				final ServerInterface remoteServerInterface;
-				try {
-					remoteServerInterface = (ServerInterface) Naming.lookup("rmi://" + HOST + "/Server/" + serverName);
-					for (final ClientInterface cli : remoteServerInterface.resourceOwners(guiClientFrame.getFileSearchTextField().getValue().toString())) {
-						guiClientFrame.appendLogEntry(cli.getClientName() + " owns " + guiClientFrame.getFileSearchTextField().getValue().toString());
+
+				Boolean alreadyPresent = false;
+				for (final Resource resource : resources) {
+					if (resource.toString().equals(guiClientFrame.getFileSearchTextField().getValue().toString())) {
+						alreadyPresent = true;
 					}
-				} catch (MalformedURLException | RemoteException | NotBoundException e) {
-					e.printStackTrace();
 				}
+
+				if (!alreadyPresent) {
+					ServerInterface remoteServerInterface = null;
+					final Vector<ClientInterface> owners = new Vector<ClientInterface>();
+					try {
+						remoteServerInterface = (ServerInterface) Naming.lookup("rmi://" + HOST + "/Server/" + serverName);
+						for (final ClientInterface cli : remoteServerInterface.resourceOwners(guiClientFrame.getFileSearchTextField().getValue().toString())) {
+							guiClientFrame.appendLogEntry(cli.getClientName() + "@" + cli.getConnectedServer() + " owns " + guiClientFrame.getFileSearchTextField().getValue().toString());
+							owners.add(cli);
+						}
+					} catch (MalformedURLException | RemoteException | NotBoundException e) {
+						e.printStackTrace();
+					}
+
+					if (owners.size() > 0) {
+						// TODO download
+
+					} else {
+						JOptionPane.showMessageDialog(guiClientFrame, "Resource " + guiClientFrame.getFileSearchTextField().getValue() + " not found in the network, please try searching another resource", "Please try searching another resource.", JOptionPane.INFORMATION_MESSAGE);
+					}
+				} else {
+					JOptionPane.showMessageDialog(guiClientFrame, "You cannon't download a owned resource, please try searching another one.", "You already own searched resource.", JOptionPane.INFORMATION_MESSAGE);
+				}
+
 			} else {
 				JOptionPane.showMessageDialog(guiClientFrame, "Please connect first.", "Please connect first", JOptionPane.ERROR_MESSAGE);
 			}
 		}
-		// TODO check if != null
-		// TODO
-		// TODO avviare la ricerca e l eventuale download
+
 	}
 
-	/**
-	 * @return true if and only if the connection is up.
-	 */
 	private final Resource requestResource(final Resource paramResquestedResource) {
 		// if (connectionUpBoolean) {
 		// // TODO

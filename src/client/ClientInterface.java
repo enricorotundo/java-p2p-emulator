@@ -13,9 +13,10 @@ public interface ClientInterface extends Remote {
 	 */
 	public String getClientName() throws RemoteException;
 
+	public String getConnectedServer() throws RemoteException;
+
 	/**
 	 * @return client's resources.
 	 */
 	public Vector<Resource> getResources() throws RemoteException;
-
 }
