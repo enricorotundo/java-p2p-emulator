@@ -9,53 +9,98 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
 
-import resource.Resource;
 import resource.ResourceInterface;
 import client.ClientInterface;
 
 public final class Server extends UnicastRemoteObject implements ServerInterface {
 
-	private class ServerChecker extends Thread {
-		public ServerChecker() { setDaemon(true); }
+	private class ClientChecker extends Thread {
+		public ClientChecker() {
+			setDaemon(true);
+		}
 
-		private void checkOtherServers() throws Exception {
-			// synchronized (monitor) {
-			final String[] list = Naming.list("rmi://" + HOST + "/Server/");
-			connectedServers.clear();
-			for (final String string : list) {
-				final ServerInterface srvInterface = (ServerInterface) Naming.lookup(string);
-				connectedServers.add(srvInterface);
+		private void clientsUpCheck() throws Exception {
+			synchronized (clientsMonitor) {
+
+				for (final ClientInterface client : connectedClients) {
+					try {
+						client.getClientName();
+					} catch (final Exception e) {
+						connectedClients.remove(client);
+						guiServerFrame.appendLogEntry("Client disconnected.");
+						// update gui
+						guiServerFrame.setConnectedClientsList(connectedClients);
+					}
+				}
 			}
-			// update gui
-			guiServerFrame.setConnectedServersList(connectedServers);
-			// }
 		}
 
 		@Override
 		public void run() {
 			while (true) {
-				// synchronized (monitor) {
-				try {
-					checkOtherServers();
-				} catch (final Exception e) {
-					e.printStackTrace();
+				synchronized (clientsMonitor) {
+					try {
+						clientsUpCheck();
+					} catch (final Exception e) {
+						e.printStackTrace();
+					}
+					try {
+						sleep(10);
+					} catch (final InterruptedException e) {
+						System.out.println("Interrupted ClientChecker thread.");
+					}
 				}
-				try {
-					sleep(10);
-				} catch (final InterruptedException e) {
-					System.out.println("Interrupted ServerChecker thread.");
-				}
-				// }
 			}
 		}
 	}
+
+	private class ServerChecker extends Thread {
+		public ServerChecker() {
+			setDaemon(true);
+		}
+
+		private void checkOtherServers() throws Exception {
+			synchronized (serversMonitor) {
+				final String[] list = Naming.list("rmi://" + HOST + "/Server/");
+				connectedServers.clear();
+				for (final String string : list) {
+					final ServerInterface srvInterface = (ServerInterface) Naming.lookup(string);
+					connectedServers.add(srvInterface);
+				}
+				// update gui
+				guiServerFrame.setConnectedServersList(connectedServers);
+			}
+		}
+
+		@Override
+		public void run() {
+			while (true) {
+				synchronized (serversMonitor) {
+					try {
+						checkOtherServers();
+					} catch (final Exception e) {
+						e.printStackTrace();
+					}
+					try {
+						sleep(10);
+					} catch (final InterruptedException e) {
+						System.out.println("Interrupted ServerChecker thread.");
+					}
+				}
+			}
+		}
+	}
+
 	private static final long serialVersionUID = -2240153419231304793L;
 	private static final String HOST = "localhost";
-	private String serverNameString = "";
-	private ServerFrame guiServerFrame = null;
-	private Vector<ClientInterface> connectedClients = new Vector<ClientInterface>();
-	private Vector<ServerInterface> connectedServers = new Vector<ServerInterface>();
-	private ServerChecker srvChecker = new ServerChecker();
+	private final String serverNameString;
+	private final ServerFrame guiServerFrame;
+	private final Vector<ClientInterface> connectedClients = new Vector<ClientInterface>();
+	private final Vector<ServerInterface> connectedServers = new Vector<ServerInterface>();
+	private final ServerChecker srvChecker = new ServerChecker();
+	private final ClientChecker clisChecker = new ClientChecker();
+	private final Object clientsMonitor = new Object();
+	private final Object serversMonitor = new Object();
 
 	public Server(final String paramServerName) throws RemoteException {
 		serverNameString = paramServerName;
@@ -74,7 +119,7 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 			}
 		});
 		srvChecker.start();
-
+		clisChecker.start();
 	}
 
 	@Override
@@ -122,33 +167,6 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 	}
 
 	@Override
-	public Vector<ServerInterface> getAllServers() {
-		return connectedServers;
-	}
-
-	@Override
-	public Vector<ClientInterface> getClients() throws RemoteException {
-		return connectedClients;
-	}
-
-	@Override
-	public Vector<Resource> getClientsResources() throws RemoteException {
-		final Vector<Resource> resources = new Vector<Resource>();
-		for (final ClientInterface cli : connectedClients) {
-			for (final Resource resource : cli.getResources()) {
-				resources.add(resource);
-			}
-		}
-		return resources;
-	}
-
-	@Override
-	public Vector<ClientInterface> getRequest(final ResourceInterface paramResource) throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public String getServerNameString() {
 		return serverNameString;
 	}
@@ -156,6 +174,21 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 	@Override
 	public String getServerUrl() throws RemoteException {
 		return "rmi://" + HOST + "/Server/" + serverNameString;
+	}
+
+	@Override
+	public Vector<ClientInterface> resourceOwners(final ResourceInterface paramResource) throws RemoteException {
+		final Vector<ClientInterface> searchedResourceOweners = new Vector<ClientInterface>();
+		for (final ServerInterface serverInterface : connectedServers) {
+			for (final ClientInterface cli : connectedClients) {
+				for (final ResourceInterface resource : cli.getResources()) {
+					if (resource.toString().equals(paramResource.toString())) {
+						searchedResourceOweners.add(cli);
+					}
+				}
+			}
+		}
+		return searchedResourceOweners;
 	}
 
 	@Override

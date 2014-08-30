@@ -6,7 +6,6 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.Vector;
 
-import resource.Resource;
 import resource.ResourceInterface;
 import client.ClientInterface;
 
@@ -29,26 +28,6 @@ public interface ServerInterface extends Remote {
 	public void disconnect() throws NotBoundException, MalformedURLException, RemoteException;
 
 	/**
-	 * @return all servers connected to the system
-	 */
-	public Vector<ServerInterface> getAllServers() throws RemoteException;
-
-	/**
-	 * @return Vector<ClientInterface> of clients registered and connected to
-	 *         this server
-	 * @throws RemoteException
-	 */
-	public Vector<ClientInterface> getClients() throws RemoteException;
-
-	/**
-	 * @return Vector<Resource> of client's resources
-	 * @throws RemoteException
-	 */
-	public Vector<Resource> getClientsResources() throws RemoteException;
-
-	public Vector<ClientInterface> getRequest(ResourceInterface paramResource) throws RemoteException;
-
-	/**
 	 * @return the server name string, different from getServerUrl()
 	 */
 	public String getServerNameString() throws RemoteException;
@@ -59,4 +38,13 @@ public interface ServerInterface extends Remote {
 	 */
 	public String getServerUrl() throws RemoteException;
 
+	/**
+	 * il server S a cui C e connesso dovraa indicare a C l elenco dei client
+	 * che sono attualmente connessi al sistema e in possesso di una copia di RK
+	 *
+	 * @param paramResource
+	 * @return
+	 * @throws RemoteException
+	 */
+	public Vector<ClientInterface> resourceOwners(ResourceInterface paramResource) throws RemoteException;
 }

@@ -1,34 +1,21 @@
 package client;
 
-import java.io.Serializable;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 import java.util.Vector;
 
 import resource.Resource;
 
-public interface ClientInterface extends Serializable {
-
-	/**
-	 * Connect the client to the p2p system.
-	 */
-	public void connectToServer();
+public interface ClientInterface extends Remote {
 
 	/**
 	 * @return the client name identifier
 	 */
-	public String getClientName();
+	public String getClientName() throws RemoteException;
 
 	/**
 	 * @return client's resources.
 	 */
-	public Vector<Resource> getResources();
+	public Vector<Resource> getResources() throws RemoteException;
 
-	public void performSearch();
-
-	/**
-	 * @return true if and only if the connection is up.
-	 */
-	public Resource requestResource(Resource paramResquestedResource);
-
-	@Override
-	public String toString();
 }

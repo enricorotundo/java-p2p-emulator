@@ -8,6 +8,7 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
 
 import javax.swing.JOptionPane;
@@ -16,7 +17,7 @@ import resource.Resource;
 import resource.part.ResourcePart;
 import server.ServerInterface;
 
-public final class Client implements ClientInterface, ActionListener {
+public final class Client extends UnicastRemoteObject implements ClientInterface, ActionListener {
 
 	private static final long serialVersionUID = 6917781270556644082L;
 	private Vector<Resource> resources = new Vector<Resource>();
@@ -36,13 +37,14 @@ public final class Client implements ClientInterface, ActionListener {
 		guiClientFrame = new ClientFrame(name);
 		guiClientFrame.getConnectionButton().addActionListener(this);
 		guiClientFrame.getFileSearchButton().addActionListener(this);
+		connectToServer();
 		// update gui
 		guiClientFrame.setResourceList(paramResources);
 		guiClientFrame.setDownloadQueueList(downloadingParts);
 	}
 
 	@Override
-	public void actionPerformed(final ActionEvent e) {
+	public final void actionPerformed(final ActionEvent e) {
 		guiClientFrame.getFileSearchTextField().requestFocus();
 		if ("search".equals(e.getActionCommand())) {
 			// performSearch(); // va implemntate nel client non nell view
@@ -53,8 +55,10 @@ public final class Client implements ClientInterface, ActionListener {
 		}
 	}
 
-	@Override
-	public void connectToServer() {
+	/**
+	 * Connect the client to the p2p system.
+	 */
+	private final void connectToServer() {
 		try {
 			final ServerInterface remoteServerInterface = (ServerInterface) Naming.lookup("rmi://" + HOST + "/Server/" + serverName);
 
@@ -83,21 +87,20 @@ public final class Client implements ClientInterface, ActionListener {
 	}
 
 	@Override
-	public String getClientName() {
+	public String getClientName() throws RemoteException {
 		return name;
 	}
 
-	public Vector<ResourcePart> getDownloadingParts() {
-		return downloadingParts;
-	}
+	// public Vector<ResourcePart> getDownloadingParts() {
+	// return downloadingParts;
+	// }
 
 	@Override
 	public Vector<Resource> getResources() {
 		return resources;
 	}
 
-	@Override
-	public void performSearch() {
+	private final void performSearch() {
 		// fileSearchTextField.requestFocus();
 		// if (fileSearchTextField.getValue() == null) {
 		// JOptionPane.showMessageDialog(this, "Please enter a file name.",
@@ -122,8 +125,10 @@ public final class Client implements ClientInterface, ActionListener {
 		// }
 	}
 
-	@Override
-	public Resource requestResource(final Resource paramResquestedResource) {
+	/**
+	 * @return true if and only if the connection is up.
+	 */
+	private final Resource requestResource(final Resource paramResquestedResource) {
 		// if (connectionUpBoolean) {
 		// // TODO
 		// // if

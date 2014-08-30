@@ -12,10 +12,7 @@ public interface ResourceInterface extends Serializable {
 
 	/**
 	 * Used when a client search a file: textbox string is converted in a
-	 * ResourceName object and then the search asks the system if there are an
-	 * equal object.
-	 *
-	 * @author erotundo
+	 * ResourceName
 	 */
 	public class ResourceName implements Serializable {
 
@@ -61,8 +58,7 @@ public interface ResourceInterface extends Serializable {
 		 * @param paramNumberOfParts
 		 *            the param number of parts
 		 */
-		public ResourceName(final Character paramResourceNameCharacter,
-				final Integer paramNumberOfParts) {
+		public ResourceName(final Character paramResourceNameCharacter, final Integer paramNumberOfParts) {
 			setResourceName(paramResourceNameCharacter);
 			setNumberOfParts(paramNumberOfParts);
 		}
@@ -92,8 +88,6 @@ public interface ResourceInterface extends Serializable {
 		}
 
 	}
-
-	public ResourceName getName();
 
 	public Vector<ResourcePart> getParts();
 

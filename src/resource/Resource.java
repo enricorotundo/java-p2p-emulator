@@ -76,18 +76,13 @@ public final class Resource implements ResourceInterface {
 	}
 
 	@Override
-	public ResourceName getName() {
-		return name;
-	}
-
-	@Override
 	public Vector<ResourcePart> getParts() {
 		return resourceParts;
 	}
 
 	@Override
 	public String toString() {
-		return getName().toString();
+		return name.toString();
 	}
 
 }
