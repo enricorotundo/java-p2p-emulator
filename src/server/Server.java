@@ -9,6 +9,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
 
+import resource.Resource;
 import resource.ResourceInterface;
 import client.ClientInterface;
 
@@ -127,18 +128,20 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 	public Integer clientConnect(final ClientInterface paramClient) throws RemoteException {
 		Integer functionResultInteger = -1;
 		Boolean alreadyPresentInteger = false;
-		for (int i = 0; i < connectedClients.size(); i++)
-			// check if client is already connected
-			if (connectedClients.elementAt(i).getClientName().equals(paramClient.toString()))
-				alreadyPresentInteger = true;
+		synchronized (clientsMonitor) {
+			for (int i = 0; i < connectedClients.size(); i++)
+				// check if client is already connected
+				if (connectedClients.elementAt(i).getClientName().equals(paramClient.toString()))
+					alreadyPresentInteger = true;
 
-		if (alreadyPresentInteger == false) {
-			connectedClients.add(paramClient);
-			guiServerFrame.appendLogEntry(paramClient.getClientName() + " connected.");
-			functionResultInteger = 1;
+			if (alreadyPresentInteger == false) {
+				connectedClients.add(paramClient);
+				guiServerFrame.appendLogEntry(paramClient.getClientName() + " connected.");
+				functionResultInteger = 1;
+			}
+			// update gui
+			guiServerFrame.setConnectedClientsList(connectedClients);
 		}
-		// update gui
-		guiServerFrame.setConnectedClientsList(connectedClients);
 		return functionResultInteger;
 	}
 
@@ -146,16 +149,18 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 	// 0 if disconnection is done, -1 if something wrong
 	public Integer clientDisconnect(final ClientInterface paramClient) throws RemoteException {
 		Integer functionResultInteger = -1;
-
-		for (int i = 0; i < connectedClients.size(); i++) {
-			// check if client is connected
-			if (connectedClients.elementAt(i).getClientName().equals(paramClient.toString())) {
-				connectedClients.remove(i);
-				functionResultInteger = 0;
+		synchronized (clientsMonitor) {
+			for (int i = 0; i < connectedClients.size(); i++) {
+				// check if client is connected
+				if (connectedClients.elementAt(i).getClientName().equals(paramClient.getClientName())) {
+					connectedClients.remove(i);
+					functionResultInteger = 0;
+					guiServerFrame.appendLogEntry(paramClient.getClientName() + " disconnected.");
+				}
 			}
+			// update gui
+			guiServerFrame.setConnectedClientsList(connectedClients);
 		}
-		// update gui
-		guiServerFrame.setConnectedClientsList(connectedClients);
 		return functionResultInteger;
 	}
 
@@ -164,6 +169,13 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 		// synchronized (sync) {
 		Naming.unbind("rmi://" + HOST + "/Server/" + serverNameString);
 		// }
+	}
+
+	@Override
+	public Vector<ClientInterface> getClients() throws RemoteException {
+		synchronized (connectedClients) {
+			return connectedClients;
+		}
 	}
 
 	@Override
@@ -177,16 +189,22 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 	}
 
 	@Override
-	public Vector<ClientInterface> resourceOwners(final ResourceInterface paramResource) throws RemoteException {
+	public Vector<ClientInterface> resourceOwners(final String paramResourceName) throws RemoteException {
+		final ResourceInterface paramResource = new Resource(paramResourceName);
 		final Vector<ClientInterface> searchedResourceOweners = new Vector<ClientInterface>();
-		for (final ServerInterface serverInterface : connectedServers) {
-			for (final ClientInterface cli : connectedClients) {
-				for (final ResourceInterface resource : cli.getResources()) {
-					if (resource.toString().equals(paramResource.toString())) {
-						searchedResourceOweners.add(cli);
+		synchronized (serversMonitor) {
+			for (final ServerInterface serverInterface : connectedServers) {
+				for (final ClientInterface cli : serverInterface.getClients()) { // sync
+					// client
+					// side
+					for (final ResourceInterface resource : cli.getResources()) {
+						if (resource.toString().equals(paramResource.toString())) {
+							searchedResourceOweners.add(cli);
+						}
 					}
 				}
 			}
+
 		}
 		return searchedResourceOweners;
 	}

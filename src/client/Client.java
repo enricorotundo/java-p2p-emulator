@@ -24,15 +24,14 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 	private final Vector<ResourcePart> downloadingParts = new Vector<ResourcePart>();
 	private final ClientFrame guiClientFrame;
 	private String name = "";
-	private Integer downloadCapacitInteger = 0;
-	private Boolean connectionUpBoolean = new Boolean(false);
+	private Integer downloadCapacityInteger = 0;
 	private String serverName;
 	private static final String HOST = "localhost";
 
 	public Client(final String paramClientName, final String paramServerName, final Integer paramDownloadCapacity, final Vector<Resource> paramResources) throws RemoteException {
 		name = paramClientName;
 		serverName = paramServerName;
-		downloadCapacitInteger = paramDownloadCapacity;
+		downloadCapacityInteger = paramDownloadCapacity;
 		resources = paramResources;
 		guiClientFrame = new ClientFrame(name);
 		guiClientFrame.getConnectionButton().addActionListener(this);
@@ -47,13 +46,17 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 	public final void actionPerformed(final ActionEvent e) {
 		guiClientFrame.getFileSearchTextField().requestFocus();
 		if ("search".equals(e.getActionCommand())) {
-			// performSearch(); // va implemntate nel client non nell view
+			performSearch();
 		}
 
 		if ("connection".equals(e.getActionCommand())) {
 			connectToServer();
 		}
 	}
+
+	// public Vector<ResourcePart> getDownloadingParts() {
+	// return downloadingParts;
+	// }
 
 	/**
 	 * Connect the client to the p2p system.
@@ -91,38 +94,34 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 		return name;
 	}
 
-	// public Vector<ResourcePart> getDownloadingParts() {
-	// return downloadingParts;
-	// }
-
 	@Override
 	public Vector<Resource> getResources() {
 		return resources;
 	}
 
 	private final void performSearch() {
-		// fileSearchTextField.requestFocus();
-		// if (fileSearchTextField.getValue() == null) {
-		// JOptionPane.showMessageDialog(this, "Please enter a file name.",
-		// "File name empty", JOptionPane.WARNING_MESSAGE);
-		// } else {
-		// if (client.getConnectionUpBoolean()) {
-		// appendLogEntry("Searching for: " + fileSearchTextField.getValue());
-		//
-		// final Resource searchedResource = new
-		// Resource(fileSearchTextField.getValue().toString());
-		//
-		// final Resource returnedResource =
-		// client.requestResource(searchedResource);
-		//
-		// // TODO check if != null
-		// // TODO
-		// // TODO avviare la ricerca e l eventuale download
-		// } else {
-		// JOptionPane.showMessageDialog(this, "Connect first.",
-		// "File name empty", JOptionPane.WARNING_MESSAGE);
-		// }
-		// }
+		guiClientFrame.getFileSearchTextField().requestFocus();
+		if (guiClientFrame.getFileSearchTextField().getValue() == null) {
+			JOptionPane.showMessageDialog(guiClientFrame, "Please enter a file name.", "File name empty", JOptionPane.WARNING_MESSAGE);
+		} else {
+			if (guiClientFrame.getConnectionButton().getText().toString().equals("Disconnect")) {
+				guiClientFrame.appendLogEntry("Searching for: " + guiClientFrame.getFileSearchTextField().getValue());
+				final ServerInterface remoteServerInterface;
+				try {
+					remoteServerInterface = (ServerInterface) Naming.lookup("rmi://" + HOST + "/Server/" + serverName);
+					for (final ClientInterface cli : remoteServerInterface.resourceOwners(guiClientFrame.getFileSearchTextField().getValue().toString())) {
+						guiClientFrame.appendLogEntry(cli.getClientName() + " owns " + guiClientFrame.getFileSearchTextField().getValue().toString());
+					}
+				} catch (MalformedURLException | RemoteException | NotBoundException e) {
+					e.printStackTrace();
+				}
+			} else {
+				JOptionPane.showMessageDialog(guiClientFrame, "Please connect first.", "Please connect first", JOptionPane.ERROR_MESSAGE);
+			}
+		}
+		// TODO check if != null
+		// TODO
+		// TODO avviare la ricerca e l eventuale download
 	}
 
 	/**

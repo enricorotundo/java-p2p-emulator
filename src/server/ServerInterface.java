@@ -6,7 +6,6 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.Vector;
 
-import resource.ResourceInterface;
 import client.ClientInterface;
 
 public interface ServerInterface extends Remote {
@@ -27,6 +26,8 @@ public interface ServerInterface extends Remote {
 
 	public void disconnect() throws NotBoundException, MalformedURLException, RemoteException;
 
+	public Vector<ClientInterface> getClients() throws RemoteException;
+
 	/**
 	 * @return the server name string, different from getServerUrl()
 	 */
@@ -46,5 +47,5 @@ public interface ServerInterface extends Remote {
 	 * @return
 	 * @throws RemoteException
 	 */
-	public Vector<ClientInterface> resourceOwners(ResourceInterface paramResource) throws RemoteException;
+	public Vector<ClientInterface> resourceOwners(String paramResourceName) throws RemoteException;
 }
