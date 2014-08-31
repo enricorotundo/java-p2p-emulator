@@ -16,10 +16,16 @@ import javax.swing.JOptionPane;
 import resource.Resource;
 import resource.ResourceInterface;
 import resource.part.ResourcePart;
+import resource.part.ResourcePartInterface;
 import server.Server;
 import server.ServerInterface;
 
 public final class Client extends UnicastRemoteObject implements ClientInterface, ActionListener {
+
+	/**************** TEMPO DI DONWLOAD COSTANTE **************/
+	private static long DOWNLOAD_TIME = 1000;
+	/**********************************************************/
+
 
 	private static final long serialVersionUID = 6917781270556644082L;
 	private final Vector<ResourceInterface> resources;
@@ -49,28 +55,18 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 	public final void actionPerformed(final ActionEvent e) {
 		guiClientFrame.getFileSearchTextField().requestFocus();
 		if ("search".equals(e.getActionCommand())) {
-			performSearch();
+			try {
+				performSearch();
+			} catch (NumberFormatException | RemoteException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		} else {
 			if ("connection".equals(e.getActionCommand())) {
 				connectToServer();
 			}
 		}
 	}
-
-	// @Override
-	// public boolean clientCompare(final Object other) throws RemoteException {
-	// if (other == null)
-	// return false;
-	// if (other == this)
-	// return true;
-	// if (!(other instanceof Client))
-	// return false;
-	// final Client otherMyClass = (Client) other;
-	// if (otherMyClass.clientName.equals(this.clientName)) {
-	// return true;
-	// }
-	// return false;
-	// }
 
 	/**
 	 * @param paramResNameString
@@ -176,22 +172,69 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 		return resources;
 	}
 
-	private final void performSearch() {
+	private final void performSearch() throws NumberFormatException, RemoteException {
 		guiClientFrame.getFileSearchTextField().requestFocus();
+		// check for text field empty
 		if (guiClientFrame.getFileSearchTextField().getValue() == null) {
 			JOptionPane.showMessageDialog(guiClientFrame, "Please enter a file name.", "File name empty", JOptionPane.WARNING_MESSAGE);
 		} else {
 			final String connectionButtonState = guiClientFrame.getConnectionButton().getText().toString();
+			// check if client is connected
 			if (connectionButtonState.equals("Disconnect")) {
 				final String searchedResString = guiClientFrame.getFileSearchTextField().getValue().toString();
 				// client is connected and check if it already has the searched
 				final Boolean checkResultBoolean = checkResourcePossession(searchedResString);
+				// if this client DOESNT own searched resource
 				if (!checkResultBoolean) { // if client hasnt the Resource, gets
 					// who got it!
 					final Vector<ClientInterface> owners = getResourceOwners(searchedResString);
+					// if there are at least one resource owner
 					if (owners.size() > 0) {
-						// TODO download
 						guiClientFrame.appendLogEntry("Start downloading " + searchedResString);
+
+						// TODO download
+
+						// qui ho: owners, searchedResString
+
+						final ResourceInterface resourceToDownload = new Resource(searchedResString);
+
+						final Vector<ResourcePartInterface> partsToDownload = new Vector<ResourcePartInterface>(resourceToDownload.getParts());
+						final ClientInterface thisClientInterface = this;
+
+						final Integer concurrencyLevel = 2; // min(D', K', N')
+
+						for (int i = 0; i < concurrencyLevel; i++) {
+							// for (int i = 0; i < downloadCapacityInteger; i++)
+							// {
+							// concurrent PARTS download
+							new Thread() {
+								@Override
+								public void run() {
+
+									for (final ClientInterface singleOwner : owners) {
+										// check if i'm dowloading from him
+										synchronized (downloadingClients) {
+											if (!downloadingClients.contains(singleOwner)) {
+												// ok i can download from him,
+												// but which part? the first
+												// one!
+												final ResourcePartInterface singlePartToDownload = partsToDownload.get(partsToDownload.indexOf(partsToDownload.firstElement()));
+												try {
+													// start downloading part
+													// through RMI
+													singleOwner.downloadPart(thisClientInterface, resourceToDownload, singlePartToDownload.getPartNumber());
+													// wait fake transfer time
+													sleep(Client.DOWNLOAD_TIME);
+												} catch (final RemoteException | InterruptedException e) {
+													e.printStackTrace();
+												}
+											}
+										}
+									}
+
+								}
+							}.start();
+						}
 
 					} else {
 						JOptionPane.showMessageDialog(guiClientFrame, "Resource " + guiClientFrame.getFileSearchTextField().getValue() + " not found in the network, please try searching another resource", "Please try searching another resource.", JOptionPane.INFORMATION_MESSAGE);
@@ -199,12 +242,10 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 				} else {
 					JOptionPane.showMessageDialog(guiClientFrame, "You cannon't download a owned resource, please try searching another one.", "You already own searched resource.", JOptionPane.INFORMATION_MESSAGE);
 				}
-
 			} else {
 				JOptionPane.showMessageDialog(guiClientFrame, "Please connect first.", "Please connect first", JOptionPane.ERROR_MESSAGE);
 			}
 		}
-
 	}
 
 	private final Resource requestResource(final Resource paramResquestedResource) {
