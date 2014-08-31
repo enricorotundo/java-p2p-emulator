@@ -15,9 +15,6 @@ public class ClientStarter {
 				for (int i = 3; i < args.length; i += 2)
 					argResources.add(new Resource(args[i].toCharArray()[0], Integer.parseInt(args[i + 1])));
 
-				// if no resources args fill it random
-				if (argResources.size() == 0)
-					argResources.addAll(Resource.createRandomResourceVector());
 				final Client c = new Client(args[0], args[1], Integer.parseInt(args[2]), argResources);
 
 			} catch (final Exception e) {

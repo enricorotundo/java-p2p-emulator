@@ -62,7 +62,7 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 
 		private void checkOtherServers() throws Exception {
 			synchronized (serversMonitor) {
-				final String[] list = Naming.list("rmi://" + HOST + "/Server/");
+				final String[] list = Naming.list(Server.URL_STRING);
 				connectedServers.clear();
 				for (final String string : list) {
 					final ServerInterface srvInterface = (ServerInterface) Naming.lookup(string);
@@ -94,6 +94,7 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 
 	private static final long serialVersionUID = -2240153419231304793L;
 	private static final String HOST = "localhost";
+	public static final String URL_STRING = "rmi://" + HOST + "/Server/";
 	private final String serverNameString;
 	private final ServerFrame guiServerFrame;
 	private final Vector<ClientInterface> connectedClients = new Vector<ClientInterface>();
@@ -167,7 +168,7 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 	@Override
 	public void disconnect() throws NotBoundException, MalformedURLException, RemoteException {
 		// synchronized (sync) {
-		Naming.unbind("rmi://" + HOST + "/Server/" + serverNameString);
+		Naming.unbind(Server.URL_STRING + serverNameString);
 		// }
 	}
 
@@ -185,7 +186,7 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 
 	@Override
 	public String getServerUrl() throws RemoteException {
-		return "rmi://" + HOST + "/Server/" + serverNameString;
+		return Server.URL_STRING + serverNameString;
 	}
 
 	@Override

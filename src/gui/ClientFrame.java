@@ -14,7 +14,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import resource.Resource;
-import resource.ResourceInterface.ResourceName;
+import resource.Resource.ResourceName;
 import resource.part.ResourcePart;
 
 public final class ClientFrame extends AbstractBasicFrame {

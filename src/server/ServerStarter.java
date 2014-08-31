@@ -11,7 +11,7 @@ public class ServerStarter {
 			try {
 				Boolean alreadyRunningBoolean = false;
 
-				final String[] list = Naming.list("rmi://" + HOST + "/Server/");
+				final String[] list = Naming.list(Server.URL_STRING);
 				for (final String string : list) {
 					final ServerInterface srvInterface = (ServerInterface) Naming.lookup(string);
 					if (srvInterface.getServerNameString().equals(args[0].toString())) {

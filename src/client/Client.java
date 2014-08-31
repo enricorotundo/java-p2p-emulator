@@ -14,26 +14,30 @@ import java.util.Vector;
 import javax.swing.JOptionPane;
 
 import resource.Resource;
+import resource.ResourceInterface;
 import resource.part.ResourcePart;
+import server.Server;
 import server.ServerInterface;
 
 public final class Client extends UnicastRemoteObject implements ClientInterface, ActionListener {
 
 	private static final long serialVersionUID = 6917781270556644082L;
-	private Vector<Resource> resources = new Vector<Resource>();
+	private final Vector<Resource> resources;
 	private final Vector<ResourcePart> downloadingParts = new Vector<ResourcePart>();
+	private final Vector<ClientInterface> uploadingClients = new Vector<ClientInterface>();
+	private final Vector<ClientInterface> downloadingClients = new Vector<ClientInterface>();
 	private final ClientFrame guiClientFrame;
-	private String name = "";
-	private Integer downloadCapacityInteger = 0;
-	private String serverName;
+	private final String clientName;
+	private final Integer downloadCapacityInteger;
+	private final String serverName;
 	private static final String HOST = "localhost";
 
 	public Client(final String paramClientName, final String paramServerName, final Integer paramDownloadCapacity, final Vector<Resource> paramResources) throws RemoteException {
-		name = paramClientName;
+		clientName = paramClientName;
 		serverName = paramServerName;
 		downloadCapacityInteger = paramDownloadCapacity;
 		resources = paramResources;
-		guiClientFrame = new ClientFrame(name + "@" + serverName);
+		guiClientFrame = new ClientFrame(clientName + "@" + serverName);
 		guiClientFrame.getConnectionButton().addActionListener(this);
 		guiClientFrame.getFileSearchButton().addActionListener(this);
 		connectToServer();
@@ -47,23 +51,19 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 		guiClientFrame.getFileSearchTextField().requestFocus();
 		if ("search".equals(e.getActionCommand())) {
 			performSearch();
-		}
-
-		if ("connection".equals(e.getActionCommand())) {
-			connectToServer();
+		} else {
+			if ("connection".equals(e.getActionCommand())) {
+				connectToServer();
+			}
 		}
 	}
-
-	// public Vector<ResourcePart> getDownloadingParts() {
-	// return downloadingParts;
-	// }
 
 	/**
 	 * Connect the client to the p2p system.
 	 */
 	private final void connectToServer() {
 		try {
-			final ServerInterface remoteServerInterface = (ServerInterface) Naming.lookup("rmi://" + HOST + "/Server/" + serverName);
+			final ServerInterface remoteServerInterface = (ServerInterface) Naming.lookup(Server.URL_STRING + serverName);
 
 			if (guiClientFrame.getConnectionButton().getText().toString().equals("Connect")) {
 				// start connection
@@ -89,9 +89,29 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 		}
 	}
 
+	/*
+	 * the paramPartNumber resource of paramResource, if paramClient isn't
+	 * already downloading parts from this client
+	 */
+	@Override
+	public ResourcePart downloadPart(final ClientInterface paramClient, final ResourceInterface paramResource, final Integer paramPartNumber) throws RemoteException {
+		if (!uploadingClients.contains(paramClient)) {
+			uploadingClients.add(paramClient);
+			for (final ResourceInterface res : resources) {
+				if (res.toString().equals(paramResource.toString())) {
+					return res.getParts().elementAt(paramPartNumber - 1);
+				}
+			}
+		} else {
+			System.out.println(paramClient.getClientName() + " is already downloading resources from me.");
+		}
+		uploadingClients.remove(paramClient);
+		return null;
+	}
+
 	@Override
 	public String getClientName() throws RemoteException {
-		return name;
+		return clientName;
 	}
 
 	@Override
@@ -123,7 +143,7 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 					ServerInterface remoteServerInterface = null;
 					final Vector<ClientInterface> owners = new Vector<ClientInterface>();
 					try {
-						remoteServerInterface = (ServerInterface) Naming.lookup("rmi://" + HOST + "/Server/" + serverName);
+						remoteServerInterface = (ServerInterface) Naming.lookup(Server.URL_STRING + serverName);
 						for (final ClientInterface cli : remoteServerInterface.resourceOwners(guiClientFrame.getFileSearchTextField().getValue().toString())) {
 							guiClientFrame.appendLogEntry(cli.getClientName() + "@" + cli.getConnectedServer() + " owns " + guiClientFrame.getFileSearchTextField().getValue().toString());
 							owners.add(cli);
@@ -134,6 +154,28 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 
 					if (owners.size() > 0) {
 						// TODO download
+						final Integer partNumberInteger = Integer.parseInt(String.valueOf(guiClientFrame.getConnectionButton().getText().toString()));
+						ResourceInterface resourceInterface = null;
+						try {
+							resourceInterface = new Resource(String.valueOf(guiClientFrame.getConnectionButton().getText().toString()));
+						} catch (NumberFormatException | RemoteException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						for (int i = 0; i < partNumberInteger; i++) {
+							for (final ClientInterface clientInterface : owners) {
+								if (!downloadingClients.contains(clientInterface)) {
+									downloadingClients.add(clientInterface);
+									try {
+										final ResourcePart downloadedPart = clientInterface.downloadPart(this, resourceInterface, partNumberInteger);
+									} catch (final RemoteException e) {
+										e.printStackTrace();
+									}
+								} else {
+									// stai gia scaric da client
+								}
+							}
+						}
 
 					} else {
 						JOptionPane.showMessageDialog(guiClientFrame, "Resource " + guiClientFrame.getFileSearchTextField().getValue() + " not found in the network, please try searching another resource", "Please try searching another resource.", JOptionPane.INFORMATION_MESSAGE);
@@ -141,7 +183,6 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 				} else {
 					JOptionPane.showMessageDialog(guiClientFrame, "You cannon't download a owned resource, please try searching another one.", "You already own searched resource.", JOptionPane.INFORMATION_MESSAGE);
 				}
-
 			} else {
 				JOptionPane.showMessageDialog(guiClientFrame, "Please connect first.", "Please connect first", JOptionPane.ERROR_MESSAGE);
 			}
@@ -168,6 +209,6 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 
 	@Override
 	public String toString() {
-		return name;
+		return clientName;
 	}
 }
