@@ -49,5 +49,5 @@ public interface ServerInterface extends Remote {
 	 */
 	public Vector<ClientInterface> resourceOwners(String paramResourceName) throws RemoteException;
 
-	public boolean serverCompare(final Object other) throws RemoteException;
+	// public boolean serverCompare(final Object other) throws RemoteException;
 }

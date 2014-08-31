@@ -4,13 +4,12 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.Vector;
 
-import resource.Resource;
 import resource.ResourceInterface;
 import resource.part.ResourcePart;
 
 public interface ClientInterface extends Remote {
 
-	public boolean clientCompare(final Object other) throws RemoteException;
+	// public boolean clientCompare(final Object other) throws RemoteException;
 
 	/**
 	 * @param paramClient
@@ -32,5 +31,5 @@ public interface ClientInterface extends Remote {
 	/**
 	 * @return client's resources.
 	 */
-	public Vector<Resource> getResources() throws RemoteException;
+	public Vector<ResourceInterface> getResources() throws RemoteException;
 }

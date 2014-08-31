@@ -22,7 +22,7 @@ import server.ServerInterface;
 public final class Client extends UnicastRemoteObject implements ClientInterface, ActionListener {
 
 	private static final long serialVersionUID = 6917781270556644082L;
-	private final Vector<Resource> resources;
+	private final Vector<ResourceInterface> resources;
 	private final Vector<ResourcePart> downloadingParts = new Vector<ResourcePart>();
 	private final Vector<ClientInterface> uploadingClients = new Vector<ClientInterface>();
 	private final Vector<ClientInterface> downloadingClients = new Vector<ClientInterface>();
@@ -31,7 +31,7 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 	private final Integer downloadCapacityInteger;
 	private final String serverName;
 
-	public Client(final String paramClientName, final String paramServerName, final Integer paramDownloadCapacity, final Vector<Resource> paramResources) throws RemoteException {
+	public Client(final String paramClientName, final String paramServerName, final Integer paramDownloadCapacity, final Vector<ResourceInterface> paramResources) throws RemoteException {
 		clientName = paramClientName;
 		serverName = paramServerName;
 		downloadCapacityInteger = paramDownloadCapacity;
@@ -57,20 +57,20 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 		}
 	}
 
-	@Override
-	public boolean clientCompare(final Object other) throws RemoteException {
-		if (other == null)
-			return false;
-		if (other == this)
-			return true;
-		if (!(other instanceof Client))
-			return false;
-		final Client otherMyClass = (Client) other;
-		if (otherMyClass.clientName.equals(this.clientName)) {
-			return true;
-		}
-		return false;
-	}
+	// @Override
+	// public boolean clientCompare(final Object other) throws RemoteException {
+	// if (other == null)
+	// return false;
+	// if (other == this)
+	// return true;
+	// if (!(other instanceof Client))
+	// return false;
+	// final Client otherMyClass = (Client) other;
+	// if (otherMyClass.clientName.equals(this.clientName)) {
+	// return true;
+	// }
+	// return false;
+	// }
 
 	/**
 	 * Connect the client to the p2p system.
@@ -134,7 +134,7 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 	}
 
 	@Override
-	public Vector<Resource> getResources() {
+	public Vector<ResourceInterface> getResources() {
 		return resources;
 	}
 
@@ -147,7 +147,7 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 				guiClientFrame.appendLogEntry("Searching for: " + guiClientFrame.getFileSearchTextField().getValue());
 
 				Boolean alreadyPresent = false;
-				for (final Resource resource : resources) {
+				for (final ResourceInterface resource : resources) {
 					if (resource.toString().equals(guiClientFrame.getFileSearchTextField().getValue().toString())) {
 						alreadyPresent = true;
 					}

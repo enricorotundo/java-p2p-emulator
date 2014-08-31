@@ -190,10 +190,10 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 			for (final ServerInterface serverInterface : connectedServers) {
 				for (final ClientInterface cli : serverInterface.getClients()) { //
 					// sync client side
-					guiServerFrame.appendLogEntry("Looking for " + paramResource.toString() + " in " + cli + "@" + serverInterface.getServerNameString());
+					guiServerFrame.appendLogEntry("Looking for " + paramResource.toString() + " in " + cli.getClientName() + "@" + serverInterface.getServerNameString());
 					for (final ResourceInterface resource : cli.getResources()) {
-						if (resource.toString().equals(paramResource.toString())) {
-							guiServerFrame.appendLogEntry(cli + "@" + serverInterface.getServerNameString() + " has " + resource.toString());
+						if (resource.equals(paramResource)) {
+							guiServerFrame.appendLogEntry(cli.getClientName() + "@" + serverInterface.getServerNameString() + " has " + resource.toString());
 							searchedResourceOweners.add(cli);
 						}
 					}
@@ -203,18 +203,18 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 		return searchedResourceOweners;
 	}
 
-	@Override
-	public boolean serverCompare(final Object other) throws RemoteException {
-		if (other == null)
-			return false;
-		if (other == this)
-			return true;
-		if (!(other instanceof Server))
-			return false;
-		final Server otherMyClass = (Server) other;
-		if (otherMyClass.serverNameString.equals(this.serverNameString)) {
-			return true;
-		}
-		return false;
-	}
+	// @Override
+	// public boolean serverCompare(final Object other) throws RemoteException {
+	// if (other == null)
+	// return false;
+	// if (other == this)
+	// return true;
+	// if (!(other instanceof Server))
+	// return false;
+	// final Server otherMyClass = (Server) other;
+	// if (otherMyClass.serverNameString.equals(this.serverNameString)) {
+	// return true;
+	// }
+	// return false;
+	// }
 }
