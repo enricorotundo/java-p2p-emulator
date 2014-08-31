@@ -73,6 +73,24 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 	// }
 
 	/**
+	 * @param paramResNameString
+	 * @return true only if client has a resource called
+	 *         paramConnectionButtonState
+	 */
+	private Boolean checkResourcePossession(final String paramResNameString) {
+		Boolean result = false;
+		guiClientFrame.appendLogEntry("Searching for: " + paramResNameString);
+		try {
+			if (resources.contains(new Resource(paramResNameString))) {
+				result = true;
+			}
+		} catch (NumberFormatException | RemoteException e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+
+	/**
 	 * Connect the client to the p2p system.
 	 */
 	private final void connectToServer() {
@@ -133,6 +151,26 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 		return serverName;
 	}
 
+	/**
+	 * @param paramSearchedResourceString
+	 * @return a Vector<ClientInterface> containing ClientsInterfaces who owns
+	 *         paramSearchedResString
+	 */
+	private Vector<ClientInterface> getResourceOwners(final String paramSearchedResourceString) {
+		ServerInterface remoteServerInterface = null;
+		final Vector<ClientInterface> owners = new Vector<ClientInterface>();
+		try {
+			remoteServerInterface = (ServerInterface) Naming.lookup(Server.URL_STRING + serverName);
+			for (final ClientInterface cli : remoteServerInterface.resourceOwners(paramSearchedResourceString)) {
+				guiClientFrame.appendLogEntry(cli.getClientName() + "@" + cli.getConnectedServer() + " owns " + paramSearchedResourceString);
+				owners.add(cli);
+			}
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+			e.printStackTrace();
+		}
+		return owners;
+	}
+
 	@Override
 	public Vector<ResourceInterface> getResources() {
 		return resources;
@@ -143,58 +181,17 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 		if (guiClientFrame.getFileSearchTextField().getValue() == null) {
 			JOptionPane.showMessageDialog(guiClientFrame, "Please enter a file name.", "File name empty", JOptionPane.WARNING_MESSAGE);
 		} else {
-			if (guiClientFrame.getConnectionButton().getText().toString().equals("Disconnect")) {
-				guiClientFrame.appendLogEntry("Searching for: " + guiClientFrame.getFileSearchTextField().getValue());
-
-				Boolean alreadyPresent = false;
-				for (final ResourceInterface resource : resources) {
-					if (resource.toString().equals(guiClientFrame.getFileSearchTextField().getValue().toString())) {
-						alreadyPresent = true;
-					}
-				}
-
-				if (!alreadyPresent) {
-					ServerInterface remoteServerInterface = null;
-					final Vector<ClientInterface> owners = new Vector<ClientInterface>();
-					try {
-						remoteServerInterface = (ServerInterface) Naming.lookup(Server.URL_STRING + serverName);
-						for (final ClientInterface cli : remoteServerInterface.resourceOwners(guiClientFrame.getFileSearchTextField().getValue().toString())) {
-							guiClientFrame.appendLogEntry(cli.getClientName() + "@" + cli.getConnectedServer() + " owns " + guiClientFrame.getFileSearchTextField().getValue().toString());
-							owners.add(cli);
-						}
-					} catch (MalformedURLException | RemoteException | NotBoundException e) {
-						e.printStackTrace();
-					}
-
+			final String connectionButtonState = guiClientFrame.getConnectionButton().getText().toString();
+			if (connectionButtonState.equals("Disconnect")) {
+				final String searchedResString = guiClientFrame.getFileSearchTextField().getValue().toString();
+				// client is connected and check if it already has the searched
+				final Boolean checkResultBoolean = checkResourcePossession(searchedResString);
+				if (!checkResultBoolean) { // if client hasnt the Resource, gets
+					// who got it!
+					final Vector<ClientInterface> owners = getResourceOwners(searchedResString);
 					if (owners.size() > 0) {
 						// TODO download
-						// final Integer partNumberInteger =
-						// Integer.parseInt(String.valueOf(guiClientFrame.getConnectionButton().getText().toString()));
-						// ResourceInterface resourceInterface = null;
-						// try {
-						// resourceInterface = new
-						// Resource(String.valueOf(guiClientFrame.getConnectionButton().getText().toString()));
-						// } catch (NumberFormatException | RemoteException e) {
-						// // TODO Auto-generated catch block
-						// e.printStackTrace();
-						// }
-						// for (int i = 0; i < partNumberInteger; i++) {
-						// for (final ClientInterface clientInterface : owners)
-						// {
-						// if (!downloadingClients.contains(clientInterface)) {
-						// downloadingClients.add(clientInterface);
-						// try {
-						// final ResourcePart downloadedPart =
-						// clientInterface.downloadPart(this, resourceInterface,
-						// partNumberInteger);
-						// } catch (final RemoteException e) {
-						// e.printStackTrace();
-						// }
-						// } else {
-						// // stai gia scaric da client
-						// }
-						// }
-						// }
+						guiClientFrame.appendLogEntry("Start downloading " + searchedResString);
 
 					} else {
 						JOptionPane.showMessageDialog(guiClientFrame, "Resource " + guiClientFrame.getFileSearchTextField().getValue() + " not found in the network, please try searching another resource", "Please try searching another resource.", JOptionPane.INFORMATION_MESSAGE);
@@ -202,6 +199,7 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 				} else {
 					JOptionPane.showMessageDialog(guiClientFrame, "You cannon't download a owned resource, please try searching another one.", "You already own searched resource.", JOptionPane.INFORMATION_MESSAGE);
 				}
+
 			} else {
 				JOptionPane.showMessageDialog(guiClientFrame, "Please connect first.", "Please connect first", JOptionPane.ERROR_MESSAGE);
 			}
