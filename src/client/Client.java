@@ -208,6 +208,9 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 	}
 
 	private final void performSearch() throws NumberFormatException, RemoteException {
+
+		// QUI VA UN THREAD !!!!!!!!!!!!!!!!!!!!!!
+
 		guiClientFrame.getFileSearchTextField().requestFocus();
 		// check for text field empty
 		if (guiClientFrame.getFileSearchTextField().getValue() == null) {
