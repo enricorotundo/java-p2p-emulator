@@ -1,11 +1,10 @@
 package resource.part;
 
 import java.rmi.RemoteException;
-import java.rmi.server.UnicastRemoteObject;
 
 import resource.Resource;
 
-public final class ResourcePart extends UnicastRemoteObject implements ResourcePartInterface { // Josh
+public final class ResourcePart implements ResourcePartInterface { // Josh
 	// Bloch's:
 	// "design for inheritance or prohibit it"
 
@@ -15,7 +14,7 @@ public final class ResourcePart extends UnicastRemoteObject implements ResourceP
 	private TransfertStatus downloadingStatus;
 
 	public ResourcePart(final Integer paramPartNumber,
- final Resource paramOwnerResource) throws RemoteException {
+			final Resource paramOwnerResource) throws RemoteException {
 		partNumber = paramPartNumber;
 		setOwnerResource(paramOwnerResource);
 		setDownloadingStatus(TransfertStatus.NotStarted);

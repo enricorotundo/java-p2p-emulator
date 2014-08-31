@@ -159,7 +159,7 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 					try {
 						remoteServerInterface = (ServerInterface) Naming.lookup(Server.URL_STRING + serverName);
 						for (final ClientInterface cli : remoteServerInterface.resourceOwners(guiClientFrame.getFileSearchTextField().getValue().toString())) {
-							guiClientFrame.appendLogEntry(cli + "@" + cli.getConnectedServer() + " owns " + guiClientFrame.getFileSearchTextField().getValue().toString());
+							guiClientFrame.appendLogEntry(cli.getClientName() + "@" + cli.getConnectedServer() + " owns " + guiClientFrame.getFileSearchTextField().getValue().toString());
 							owners.add(cli);
 						}
 					} catch (MalformedURLException | RemoteException | NotBoundException e) {
@@ -168,28 +168,33 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 
 					if (owners.size() > 0) {
 						// TODO download
-						final Integer partNumberInteger = Integer.parseInt(String.valueOf(guiClientFrame.getConnectionButton().getText().toString()));
-						ResourceInterface resourceInterface = null;
-						try {
-							resourceInterface = new Resource(String.valueOf(guiClientFrame.getConnectionButton().getText().toString()));
-						} catch (NumberFormatException | RemoteException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-						for (int i = 0; i < partNumberInteger; i++) {
-							for (final ClientInterface clientInterface : owners) {
-								if (!downloadingClients.contains(clientInterface)) {
-									downloadingClients.add(clientInterface);
-									try {
-										final ResourcePart downloadedPart = clientInterface.downloadPart(this, resourceInterface, partNumberInteger);
-									} catch (final RemoteException e) {
-										e.printStackTrace();
-									}
-								} else {
-									// stai gia scaric da client
-								}
-							}
-						}
+						// final Integer partNumberInteger =
+						// Integer.parseInt(String.valueOf(guiClientFrame.getConnectionButton().getText().toString()));
+						// ResourceInterface resourceInterface = null;
+						// try {
+						// resourceInterface = new
+						// Resource(String.valueOf(guiClientFrame.getConnectionButton().getText().toString()));
+						// } catch (NumberFormatException | RemoteException e) {
+						// // TODO Auto-generated catch block
+						// e.printStackTrace();
+						// }
+						// for (int i = 0; i < partNumberInteger; i++) {
+						// for (final ClientInterface clientInterface : owners)
+						// {
+						// if (!downloadingClients.contains(clientInterface)) {
+						// downloadingClients.add(clientInterface);
+						// try {
+						// final ResourcePart downloadedPart =
+						// clientInterface.downloadPart(this, resourceInterface,
+						// partNumberInteger);
+						// } catch (final RemoteException e) {
+						// e.printStackTrace();
+						// }
+						// } else {
+						// // stai gia scaric da client
+						// }
+						// }
+						// }
 
 					} else {
 						JOptionPane.showMessageDialog(guiClientFrame, "Resource " + guiClientFrame.getFileSearchTextField().getValue() + " not found in the network, please try searching another resource", "Please try searching another resource.", JOptionPane.INFORMATION_MESSAGE);

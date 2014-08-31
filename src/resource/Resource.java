@@ -1,7 +1,6 @@
 package resource;
 
 import java.rmi.RemoteException;
-import java.rmi.server.UnicastRemoteObject;
 import java.text.ParseException;
 import java.util.Vector;
 
@@ -10,7 +9,7 @@ import javax.swing.text.MaskFormatter;
 import resource.part.ResourcePart;
 
 // Josh Bloch's: "design for inheritance or prohibit it"
-public final class Resource extends UnicastRemoteObject implements ResourceInterface {
+public final class Resource implements ResourceInterface {
 
 	/**
 	 * Used when a client search a file: textbox string is converted in a
