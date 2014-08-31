@@ -25,6 +25,7 @@ public interface ServerInterface extends Remote {
 	public Integer clientDisconnect(ClientInterface paramClient) throws RemoteException;
 
 	public void disconnect() throws NotBoundException, MalformedURLException, RemoteException;
+
 	public Vector<ClientInterface> getClients() throws RemoteException;
 
 	/**
@@ -47,4 +48,6 @@ public interface ServerInterface extends Remote {
 	 * @throws RemoteException
 	 */
 	public Vector<ClientInterface> resourceOwners(String paramResourceName) throws RemoteException;
+
+	public boolean serverCompare(final Object other) throws RemoteException;
 }

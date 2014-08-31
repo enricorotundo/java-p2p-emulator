@@ -57,6 +57,21 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 		}
 	}
 
+	@Override
+	public boolean clientCompare(final Object other) throws RemoteException {
+		if (other == null)
+			return false;
+		if (other == this)
+			return true;
+		if (!(other instanceof Client))
+			return false;
+		final Client otherMyClass = (Client) other;
+		if (otherMyClass.clientName.equals(this.clientName)) {
+			return true;
+		}
+		return false;
+	}
+
 	/**
 	 * Connect the client to the p2p system.
 	 */
@@ -102,7 +117,7 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 				}
 			}
 		} else {
-			System.out.println(paramClient.getClientName() + " is already downloading resources from me.");
+			System.out.println(paramClient + " is already downloading resources from me.");
 		}
 		uploadingClients.remove(paramClient);
 		return null;
@@ -144,7 +159,7 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 					try {
 						remoteServerInterface = (ServerInterface) Naming.lookup(Server.URL_STRING + serverName);
 						for (final ClientInterface cli : remoteServerInterface.resourceOwners(guiClientFrame.getFileSearchTextField().getValue().toString())) {
-							guiClientFrame.appendLogEntry(cli.getClientName() + "@" + cli.getConnectedServer() + " owns " + guiClientFrame.getFileSearchTextField().getValue().toString());
+							guiClientFrame.appendLogEntry(cli + "@" + cli.getConnectedServer() + " owns " + guiClientFrame.getFileSearchTextField().getValue().toString());
 							owners.add(cli);
 						}
 					} catch (MalformedURLException | RemoteException | NotBoundException e) {
@@ -204,10 +219,5 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 		// System.out.println("Connection down.");
 
 		return paramResquestedResource;// stub
-	}
-
-	@Override
-	public String toString() {
-		return clientName;
 	}
 }

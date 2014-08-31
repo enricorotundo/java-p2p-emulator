@@ -25,7 +25,7 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 
 				for (final ClientInterface client : connectedClients) {
 					try {
-						client.getClientName();
+						client.getConnectedServer();
 					} catch (final Exception e) {
 						connectedClients.remove(client);
 						guiServerFrame.appendLogEntry("Client disconnected.");
@@ -128,20 +128,15 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 	// if connection success returns 1, if something wrong returns -1
 	public Integer clientConnect(final ClientInterface paramClient) throws RemoteException {
 		Integer functionResultInteger = -1;
-		Boolean alreadyPresentInteger = false;
 		synchronized (clientsMonitor) {
-			for (int i = 0; i < connectedClients.size(); i++)
-				// check if client is already connected
-				if (connectedClients.elementAt(i).getClientName().equals(paramClient.toString()))
-					alreadyPresentInteger = true;
-
-			if (alreadyPresentInteger == false) {
+			// check if client is already connected
+			if (!connectedClients.contains(paramClient)) {
 				connectedClients.add(paramClient);
 				guiServerFrame.appendLogEntry(paramClient.getClientName() + " connected.");
 				functionResultInteger = 1;
+				// update gui
+				guiServerFrame.setConnectedClientsList(connectedClients);
 			}
-			// update gui
-			guiServerFrame.setConnectedClientsList(connectedClients);
 		}
 		return functionResultInteger;
 	}
@@ -151,16 +146,14 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 	public Integer clientDisconnect(final ClientInterface paramClient) throws RemoteException {
 		Integer functionResultInteger = -1;
 		synchronized (clientsMonitor) {
-			for (int i = 0; i < connectedClients.size(); i++) {
-				// check if client is connected
-				if (connectedClients.elementAt(i).getClientName().equals(paramClient.getClientName())) {
-					connectedClients.remove(i);
-					functionResultInteger = 0;
-					guiServerFrame.appendLogEntry(paramClient.getClientName() + " disconnected.");
-				}
+			// check if client is connected
+			if (connectedClients.contains(paramClient)) {
+				connectedClients.remove(paramClient);
+				functionResultInteger = 0;
+				guiServerFrame.appendLogEntry(paramClient.getClientName() + " disconnected.");
+				// update gui
+				guiServerFrame.setConnectedClientsList(connectedClients);
 			}
-			// update gui
-			guiServerFrame.setConnectedClientsList(connectedClients);
 		}
 		return functionResultInteger;
 	}
@@ -197,22 +190,31 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 			for (final ServerInterface serverInterface : connectedServers) {
 				for (final ClientInterface cli : serverInterface.getClients()) { //
 					// sync client side
-					guiServerFrame.appendLogEntry("Looking for " + paramResource.toString() + " in " + cli.getClientName() + "@" + serverInterface.getServerNameString());
+					guiServerFrame.appendLogEntry("Looking for " + paramResource.toString() + " in " + cli + "@" + serverInterface.getServerNameString());
 					for (final ResourceInterface resource : cli.getResources()) {
 						if (resource.toString().equals(paramResource.toString())) {
-							guiServerFrame.appendLogEntry(cli.getClientName() + "@" + serverInterface.getServerNameString() + " has " + resource.toString());
+							guiServerFrame.appendLogEntry(cli + "@" + serverInterface.getServerNameString() + " has " + resource.toString());
 							searchedResourceOweners.add(cli);
 						}
 					}
 				}
 			}
-
 		}
 		return searchedResourceOweners;
 	}
 
 	@Override
-	public String toString() {
-		return serverNameString;
+	public boolean serverCompare(final Object other) throws RemoteException {
+		if (other == null)
+			return false;
+		if (other == this)
+			return true;
+		if (!(other instanceof Server))
+			return false;
+		final Server otherMyClass = (Server) other;
+		if (otherMyClass.serverNameString.equals(this.serverNameString)) {
+			return true;
+		}
+		return false;
 	}
 }

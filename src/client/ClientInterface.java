@@ -10,6 +10,8 @@ import resource.part.ResourcePart;
 
 public interface ClientInterface extends Remote {
 
+	public boolean clientCompare(final Object other) throws RemoteException;
+
 	/**
 	 * @param paramClient
 	 * @param paramResource
@@ -31,5 +33,4 @@ public interface ClientInterface extends Remote {
 	 * @return client's resources.
 	 */
 	public Vector<Resource> getResources() throws RemoteException;
-
 }
