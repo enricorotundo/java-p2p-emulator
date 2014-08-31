@@ -29,7 +29,4 @@ public class ServerStarter {
 			}
 		}
 	}
-
-	private static final String HOST = "localhost";
-
 }

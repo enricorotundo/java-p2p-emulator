@@ -30,7 +30,6 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 	private final String clientName;
 	private final Integer downloadCapacityInteger;
 	private final String serverName;
-	private static final String HOST = "localhost";
 
 	public Client(final String paramClientName, final String paramServerName, final Integer paramDownloadCapacity, final Vector<Resource> paramResources) throws RemoteException {
 		clientName = paramClientName;
