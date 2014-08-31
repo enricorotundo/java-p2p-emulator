@@ -20,35 +20,24 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 			setDaemon(true);
 		}
 
-		private void clientsUpCheck() throws Exception {
-			synchronized (clientsMonitor) {
-
-				for (final ClientInterface client : connectedClients) {
-					try {
-						client.getConnectedServer();
-					} catch (final Exception e) {
-						connectedClients.remove(client);
-						guiServerFrame.appendLogEntry("Client disconnected.");
-						// update gui
-						guiServerFrame.setConnectedClientsList(connectedClients);
-					}
-				}
-			}
-		}
-
 		@Override
 		public void run() {
 			while (true) {
 				synchronized (clientsMonitor) {
 					try {
-						clientsUpCheck();
-					} catch (final Exception e) {
-						e.printStackTrace();
-					}
-					try {
-						sleep(10);
+						for (final ClientInterface client : connectedClients) {
+							try {
+								client.getConnectedServer();
+							} catch (final Exception e) {
+								connectedClients.remove(client);
+								guiServerFrame.appendLogEntry("Client disconnected.");
+								// update gui
+								guiServerFrame.setConnectedClientsList(connectedClients);
+							}
+						}
+						clientsMonitor.wait();
 					} catch (final InterruptedException e) {
-						System.out.println("Interrupted ClientChecker thread.");
+						e.printStackTrace();
 					}
 				}
 			}
@@ -60,32 +49,22 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 			setDaemon(true);
 		}
 
-		private void checkOtherServers() throws Exception {
-			synchronized (serversMonitor) {
-				final String[] list = Naming.list(Server.URL_STRING);
-				connectedServers.clear();
-				for (final String string : list) {
-					final ServerInterface srvInterface = (ServerInterface) Naming.lookup(string);
-					connectedServers.add(srvInterface);
-				}
-				// update gui
-				guiServerFrame.setConnectedServersList(connectedServers);
-			}
-		}
-
 		@Override
 		public void run() {
 			while (true) {
 				synchronized (serversMonitor) {
 					try {
-						checkOtherServers();
-					} catch (final Exception e) {
+						final String[] list = Naming.list(Server.URL_STRING);
+						connectedServers.clear();
+						for (final String string : list) {
+							final ServerInterface srvInterface = (ServerInterface) Naming.lookup(string);
+							connectedServers.add(srvInterface);
+						}
+						// update gui
+						guiServerFrame.setConnectedServersList(connectedServers);
+						sleep(100);
+					} catch (final InterruptedException | RemoteException | MalformedURLException | NotBoundException e) {
 						e.printStackTrace();
-					}
-					try {
-						sleep(10);
-					} catch (final InterruptedException e) {
-						System.out.println("Interrupted ServerChecker thread.");
 					}
 				}
 			}
@@ -108,8 +87,12 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 		serverNameString = paramServerName;
 		guiServerFrame = new ServerFrame(paramServerName);
 		// update gui
-		guiServerFrame.setConnectedClientsList(connectedClients);
-		guiServerFrame.setConnectedServersList(connectedServers);
+		synchronized (clientsMonitor) {
+			guiServerFrame.setConnectedClientsList(connectedClients);
+		}
+		synchronized (serversMonitor) {
+			guiServerFrame.setConnectedServersList(connectedServers);
+		}
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
@@ -137,6 +120,7 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 				// update gui
 				guiServerFrame.setConnectedClientsList(connectedClients);
 			}
+			clientsMonitor.notifyAll();
 		}
 		return functionResultInteger;
 	}
@@ -154,15 +138,14 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 				// update gui
 				guiServerFrame.setConnectedClientsList(connectedClients);
 			}
+			clientsMonitor.notifyAll();
 		}
 		return functionResultInteger;
 	}
 
 	@Override
 	public void disconnect() throws NotBoundException, MalformedURLException, RemoteException {
-		// synchronized (sync) {
 		Naming.unbind(Server.URL_STRING + serverNameString);
-		// }
 	}
 
 	@Override
@@ -203,18 +186,4 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 		return searchedResourceOweners;
 	}
 
-	// @Override
-	// public boolean serverCompare(final Object other) throws RemoteException {
-	// if (other == null)
-	// return false;
-	// if (other == this)
-	// return true;
-	// if (!(other instanceof Server))
-	// return false;
-	// final Server otherMyClass = (Server) other;
-	// if (otherMyClass.serverNameString.equals(this.serverNameString)) {
-	// return true;
-	// }
-	// return false;
-	// }
 }

@@ -22,10 +22,34 @@ import server.ServerInterface;
 
 public final class Client extends UnicastRemoteObject implements ClientInterface, ActionListener {
 
-	/**************** TEMPO DI DONWLOAD COSTANTE **************/
-	private static long DOWNLOAD_TIME = 1000;
-	/**********************************************************/
+	class ConnectionChecker extends Thread {
+		@Override
+		public void run(){
+			while (true) {
+				try {
+					sleep(100);
+					System.out.println(Naming.lookup(Server.URL_STRING + serverName));
 
+				} catch (MalformedURLException | RemoteException | InterruptedException e) {
+					e.printStackTrace();
+				} catch (final NotBoundException e) {
+					guiClientFrame.getConnectionButton().setText("Connect");
+					guiClientFrame.appendLogEntry("Disconnected from " + serverName + " because seems offline.");
+					synchronized (serverChecker) {
+						try {
+							serverChecker.wait();
+						} catch (final InterruptedException e1) {
+							e1.printStackTrace();
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**************** TEMPO DI DONWLOAD COSTANTE (PER PARTE) **************/
+	private static long DOWNLOAD_TIME = 1000;
+	/**********************************************************************/
 
 	private static final long serialVersionUID = 6917781270556644082L;
 	private final Vector<ResourceInterface> resources;
@@ -34,18 +58,21 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 	private final Vector<ClientInterface> downloadingClients = new Vector<ClientInterface>();
 	private final ClientFrame guiClientFrame;
 	private final String clientName;
-	private final Integer downloadCapacityInteger;
+	private final Integer maxDownloadCapacity;
+	private Integer currentDownloads = 0;
 	private final String serverName;
+	private final ConnectionChecker serverChecker = new ConnectionChecker();
 
 	public Client(final String paramClientName, final String paramServerName, final Integer paramDownloadCapacity, final Vector<ResourceInterface> paramResources) throws RemoteException {
 		clientName = paramClientName;
 		serverName = paramServerName;
-		downloadCapacityInteger = paramDownloadCapacity;
+		maxDownloadCapacity = paramDownloadCapacity;
 		resources = paramResources;
 		guiClientFrame = new ClientFrame(clientName + "@" + serverName);
 		guiClientFrame.getConnectionButton().addActionListener(this);
 		guiClientFrame.getFileSearchButton().addActionListener(this);
 		connectToServer();
+		serverChecker.start();
 		// update gui
 		guiClientFrame.setResourceList(paramResources);
 		guiClientFrame.setDownloadQueueList(downloadingParts);
@@ -58,7 +85,6 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 			try {
 				performSearch();
 			} catch (NumberFormatException | RemoteException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		} else {
@@ -90,31 +116,40 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 	 * Connect the client to the p2p system.
 	 */
 	private final void connectToServer() {
-		try {
-			final ServerInterface remoteServerInterface = (ServerInterface) Naming.lookup(Server.URL_STRING + serverName);
+		final ClientInterface thisClientInterface = this;
+		new Thread() {
+			@Override
+			public void run() {
+				try {
+					final ServerInterface remoteServerInterface = (ServerInterface) Naming.lookup(Server.URL_STRING + serverName);
 
-			if (guiClientFrame.getConnectionButton().getText().toString().equals("Connect")) {
-				// start connection
-				if (remoteServerInterface.clientConnect(this) == 1) {
-					guiClientFrame.appendLogEntry("Connected to " + serverName);
-					guiClientFrame.getConnectionButton().setText("Disconnect");
-				} else { // connection failed
-					guiClientFrame.appendLogEntry("Problems connecting to " + serverName);
-				}
-			} else {
-				// start disconnection
-				if (remoteServerInterface.clientDisconnect(this) == 0) {
-					guiClientFrame.appendLogEntry("Disconnected from " + serverName);
-					guiClientFrame.getConnectionButton().setText("Connect");
-				} else { // disconnection failed
-					guiClientFrame.appendLogEntry("Problems disconnecting to " + serverName);
+					synchronized (guiClientFrame.getConnectionButton()) {
+						if (guiClientFrame.getConnectionButton().getText().toString().equals("Connect")) {
+							// start connection
+							if (remoteServerInterface.clientConnect(thisClientInterface) == 1) {
+								guiClientFrame.appendLogEntry("Connected to " + serverName);
+								guiClientFrame.getConnectionButton().setText("Disconnect");
+								synchronized (serverChecker) {
+									serverChecker.notifyAll();
+								}
+							} else { // connection failed
+								guiClientFrame.appendLogEntry("Problems connecting to " + serverName);
+							}
+						} else {
+							// start disconnection
+							if (remoteServerInterface.clientDisconnect(thisClientInterface) == 0) {
+								guiClientFrame.appendLogEntry("Disconnected from " + serverName);
+								guiClientFrame.getConnectionButton().setText("Connect");
+							} else { // disconnection failed
+								guiClientFrame.appendLogEntry("Problems disconnecting to " + serverName);
+							}
+						}
+					}
+				} catch (MalformedURLException | NotBoundException | RemoteException e) {
+					JOptionPane.showMessageDialog(guiClientFrame, "Server " + serverName + " unreachable.", "Error", JOptionPane.ERROR_MESSAGE);
 				}
 			}
-		} catch (MalformedURLException | NotBoundException e) {
-			e.printStackTrace();
-		} catch (final RemoteException e) {
-			JOptionPane.showMessageDialog(guiClientFrame, "Server " + serverName + " unreachable.", "Error", JOptionPane.ERROR_MESSAGE);
-		}
+		}.start();
 	}
 
 	/*
