@@ -16,7 +16,6 @@ import javax.swing.JOptionPane;
 import resource.Resource;
 import resource.ResourceInterface;
 import resource.part.ResourcePart;
-import resource.part.ResourcePartInterface;
 import server.Server;
 import server.ServerInterface;
 
@@ -24,7 +23,7 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 
 	class ConnectionChecker extends Thread {
 		@Override
-		public void run(){
+		public void run() {
 			while (true) {
 				try {
 					sleep(100);
@@ -47,6 +46,37 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 		}
 	}
 
+	class Downloader extends Thread {
+		private ClientInterface clientInterface;
+		private String nameString;
+
+		public Downloader(final ClientInterface paramClientInterface, final String paramName) {
+			clientInterface = paramClientInterface;
+			nameString = paramName;
+		}
+
+		@Override
+		public void run() {
+			while (true) {
+				try {
+					synchronized (downloadingParts) {
+						if (downloadingParts.size() <= 0) {
+							System.out.println("No parts to download, see you later! by " + nameString);
+							downloadingParts.wait();
+						}
+						// qui ce qualcosa da scaricare
+						ResourcePart partToDownload = downloadingParts.remove(0);
+						partToDownload = downloadPart(clientInterface, partToDownload.getOwnerResource(), partToDownload.getPartNumber());
+						sleep(Client.DOWNLOAD_TIME);
+						System.out.println(" " + nameString);
+					}
+				} catch (final InterruptedException | RemoteException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
 	/**************** TEMPO DI DONWLOAD COSTANTE (PER PARTE) **************/
 	private static long DOWNLOAD_TIME = 1000;
 	/**********************************************************************/
@@ -55,7 +85,6 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 	private final Vector<ResourceInterface> resources;
 	private final Vector<ResourcePart> downloadingParts = new Vector<ResourcePart>();
 	private final Vector<ClientInterface> uploadingClients = new Vector<ClientInterface>();
-	private final Vector<ClientInterface> downloadingClients = new Vector<ClientInterface>();
 	private final ClientFrame guiClientFrame;
 	private final String clientName;
 	private final Integer maxDownloadCapacity;
@@ -96,8 +125,7 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 
 	/**
 	 * @param paramResNameString
-	 * @return true only if client has a resource called
-	 *         paramConnectionButtonState
+	 * @return true only if client has a resource called paramResNameString
 	 */
 	private Boolean checkResourcePossession(final String paramResNameString) {
 		Boolean result = false;
@@ -158,18 +186,23 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 	 */
 	@Override
 	public ResourcePart downloadPart(final ClientInterface paramClient, final ResourceInterface paramResource, final Integer paramPartNumber) throws RemoteException {
-		if (!uploadingClients.contains(paramClient)) {
+		// remote checks if client is already downloading
+		ResourcePart part = null;
+		synchronized (uploadingClients) {
+			while (uploadingClients.contains(paramClient)) {
+
+			}
 			uploadingClients.add(paramClient);
-			for (final ResourceInterface res : resources) {
-				if (res.toString().equals(paramResource.toString())) {
-					return res.getParts().elementAt(paramPartNumber - 1);
+			synchronized (resources) {
+				for (final ResourceInterface res : resources) {
+					if (res.toString().equals(paramResource.toString())) {
+						part = res.getParts().elementAt(paramPartNumber - 1);
+					}
 				}
 			}
-		} else {
-			System.out.println(paramClient + " is already downloading resources from me.");
+			uploadingClients.remove(paramClient);
 		}
-		uploadingClients.remove(paramClient);
-		return null;
+		return part;
 	}
 
 	@Override
@@ -209,7 +242,7 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 
 	private final void performSearch() throws NumberFormatException, RemoteException {
 
-		// QUI VA UN THREAD !!!!!!!!!!!!!!!!!!!!!!
+		// QUI VA UN THREAD ?? !!!!!!!!!!!!!!!!!!!!!!
 
 		guiClientFrame.getFileSearchTextField().requestFocus();
 		// check for text field empty
@@ -221,58 +254,27 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 			if (connectionButtonState.equals("Disconnect")) {
 				final String searchedResString = guiClientFrame.getFileSearchTextField().getValue().toString();
 				// client is connected and check if it already has the searched
+				// resource
 				final Boolean checkResultBoolean = checkResourcePossession(searchedResString);
 				// if this client DOESNT own searched resource
 				if (!checkResultBoolean) { // if client hasnt the Resource, gets
 					// who got it!
+
 					final Vector<ClientInterface> owners = getResourceOwners(searchedResString);
 					// if there are at least one resource owner
 					if (owners.size() > 0) {
 						guiClientFrame.appendLogEntry("Start downloading " + searchedResString);
 
-						// TODO download
-
 						// qui ho: owners, searchedResString
 
 						final ResourceInterface resourceToDownload = new Resource(searchedResString);
 
-						final Vector<ResourcePartInterface> partsToDownload = new Vector<ResourcePartInterface>(resourceToDownload.getParts());
-						final ClientInterface thisClientInterface = this;
-
-						final Integer concurrencyLevel = 2; // min(D', K', N')
-
-						for (int i = 0; i < concurrencyLevel; i++) {
-							// for (int i = 0; i < downloadCapacityInteger; i++)
-							// {
-							// concurrent PARTS download
-							new Thread() {
-								@Override
-								public void run() {
-
-									for (final ClientInterface singleOwner : owners) {
-										// check if i'm dowloading from him
-										synchronized (downloadingClients) {
-											if (!downloadingClients.contains(singleOwner)) {
-												// ok i can download from him,
-												// but which part? the first
-												// one!
-												final ResourcePartInterface singlePartToDownload = partsToDownload.get(partsToDownload.indexOf(partsToDownload.firstElement()));
-												try {
-													// start downloading part
-													// through RMI
-													singleOwner.downloadPart(thisClientInterface, resourceToDownload, singlePartToDownload.getPartNumber());
-													// wait fake transfer time
-													sleep(Client.DOWNLOAD_TIME);
-												} catch (final RemoteException | InterruptedException e) {
-													e.printStackTrace();
-												}
-											}
-										}
-									}
-
-								}
-							}.start();
+						synchronized (downloadingParts) {
+							downloadingParts.addAll(resourceToDownload.getParts());
+							downloadingParts.notifyAll();
 						}
+
+
 
 					} else {
 						JOptionPane.showMessageDialog(guiClientFrame, "Resource " + guiClientFrame.getFileSearchTextField().getValue() + " not found in the network, please try searching another resource", "Please try searching another resource.", JOptionPane.INFORMATION_MESSAGE);
@@ -284,22 +286,5 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 				JOptionPane.showMessageDialog(guiClientFrame, "Please connect first.", "Please connect first", JOptionPane.ERROR_MESSAGE);
 			}
 		}
-	}
-
-	private final Resource requestResource(final Resource paramResquestedResource) {
-		// if (connectionUpBoolean) {
-		// // TODO
-		// // if
-		// for (final ResourcePart part : paramResquestedResource.getParts()) {
-		// downloadingParts.add(part);
-		// }
-		//
-		// // part.setDownloadingStatus(TransfertStatus.Downloading);
-		//
-		// guiClientFrame.getDownloadQueueList().updateUI();
-		// } else
-		// System.out.println("Connection down.");
-
-		return paramResquestedResource;// stub
 	}
 }
