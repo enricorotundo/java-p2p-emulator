@@ -27,10 +27,9 @@ import client.Downloader;
 public final class Client extends UnicastRemoteObject implements ClientInterface, ActionListener {
 
 	/**************** TEMPO DI DONWLOAD COSTANTE (PER PARTE) **************/
-	private static final long DOWNLOAD_TIME = 1000;
+	public static final long DOWNLOAD_TIME = 500;
 	/**********************************************************************/
 
-	private final Vector<ClientInterface> uploadingClients = new Vector<ClientInterface>();
 	private static final long serialVersionUID = 6917781270556644082L;
 	private final Vector<ResourceInterface> resources;
 	private final Vector<ResourceInterface> downloadingResources = new Vector<ResourceInterface>();
@@ -77,13 +76,6 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 		return parts;
 	}
 
-	/**
-	 * @param paramResourceToDownload
-	 * @return il minimo tra 
-	 * D' (capacita download), 
-	 * K' num parti mancanti, 
-	 * N' num client disponibili 
-	 */
 	@Override
 	public Integer getMinIndex(final ResourceInterface paramResourceToDownload) throws RemoteException {
 		final Vector<Integer> vettIntegers = new Vector<Integer>();
@@ -312,6 +304,7 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 
 	@Override
 	public void incrementCurrentDownloadsCounter() throws RemoteException {
+		guiClientFrame.appendLogEntry("incrmento " + currentDownloads + " -> " + (currentDownloads + 1));
 		synchronized (currentDownloads) {
 			currentDownloads++;
 		}
@@ -319,6 +312,7 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 
 	@Override
 	public void decrementCurrentDownloadsCounter() throws RemoteException {
+		guiClientFrame.appendLogEntry("Decrmento " + currentDownloads + " -> " + (currentDownloads  - 1));
 		synchronized (currentDownloads) {
 			currentDownloads--;
 		}

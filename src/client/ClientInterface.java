@@ -26,6 +26,13 @@ public interface ClientInterface extends Remote {
 	
 	public ClientFrame getGuiClientFrame() throws RemoteException;
 	
+	/**
+	 * @param paramResourceToDownload
+	 * @return il minimo tra 
+	 * D' (capacita download), 
+	 * K' num parti mancanti, 
+	 * N' num client disponibili 
+	 */
 	public Integer getMinIndex(final ResourceInterface paramResourceToDownload) throws RemoteException;
 	
 	public Vector<ClientInterface> getResourceOwners(final String paramSearchedResourceString) throws RemoteException;

@@ -85,6 +85,10 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 	public Server(final String paramServerName) throws RemoteException {
 		serverNameString = paramServerName;
 		guiServerFrame = new ServerFrame(paramServerName);
+		
+		String ipAddress = "127.0.0.1"; //Local IP address 
+		System.setProperty("java.rmi.server.hostname",ipAddress);
+		
 		// update gui
 		synchronized (clientsMonitor) {
 			guiServerFrame.setConnectedClientsList(connectedClients);
