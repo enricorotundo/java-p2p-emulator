@@ -9,28 +9,38 @@ import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Vector;
 
 import javax.swing.JOptionPane;
+import javax.xml.crypto.Data;
 
 import resource.Resource;
 import resource.ResourceInterface;
 import resource.part.ResourcePartInterface;
+import resource.part.TransfertStatus;
 import server.Server;
 import server.ServerInterface;
+import client.Downloader;
 
 public final class Client extends UnicastRemoteObject implements ClientInterface, ActionListener {
+
+	/**************** TEMPO DI DONWLOAD COSTANTE (PER PARTE) **************/
+	private static final long DOWNLOAD_TIME = 1000;
+	/**********************************************************************/
 
 	private final Vector<ClientInterface> uploadingClients = new Vector<ClientInterface>();
 	private static final long serialVersionUID = 6917781270556644082L;
 	private final Vector<ResourceInterface> resources;
-	private final Vector<ResourcePartInterface> downloadingParts = new Vector<ResourcePartInterface>();
+	private final Vector<ResourceInterface> downloadingResources = new Vector<ResourceInterface>();
 	private final ClientFrame guiClientFrame;
 	private final String clientName;
 	private final Integer maxDownloadCapacity;
 	private Integer currentDownloads = 0;
 	private final String serverName;
 	private final ConnectionChecker serverChecker = new ConnectionChecker();
+	private final Vector<ClientInterface> occupiedClients = new Vector<ClientInterface>();
 
 	class ConnectionChecker extends Thread {
 		@Override
@@ -56,88 +66,32 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 		}
 	}
 
-	class Downloader extends Thread implements DownloaderInterface {
-		private ClientInterface clientInterface;
-		private String nameString;
-
-		public Downloader(final ClientInterface paramClientInterface, final String paramName) {
-			clientInterface = paramClientInterface;
-			nameString = paramName;
+	/**
+	 * @return un Vector<ResourcePartInterface> di parti che sono in coda di scaricamento
+	 */
+	private Vector<ResourcePartInterface> getPartiMancanti() {
+		Vector<ResourcePartInterface> parts = new Vector<ResourcePartInterface>();
+		for (ResourceInterface res : downloadingResources) {
+			parts.addAll(res.getParts());
 		}
-
-		private void requestPart(final Vector<ClientInterface> paramOwners, final ResourceInterface paramResource, final Integer paramPartNumber) {
-			// TODO per ogni parte della risorsa chiama download part del
-			// UPLOADER
-		}
-
-		@Override
-		public void run() {
-			while (true) {
-				try {
-					synchronized (downloadingParts) {
-						if (downloadingParts.size() <= 0) {
-							System.out.println("No parts to download, see you later! by " + nameString);
-							downloadingParts.wait();
-						}
-						// qui ce qualcosa da scaricare
-						final ResourcePartInterface partToDownload = downloadingParts.remove(0);
-
-						// partToDownload = downloadPart(clientInterface,
-						// partToDownload.getOwnerResource(),
-						// partToDownload.getPartNumber());
-
-						// sleep(Uploader.DOWNLOAD_TIME); //lo fa l'uploader!
-						System.out.println(" " + nameString);
-					}
-				} catch (final InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		}
+		return parts;
 	}
 
-	class Uploader extends Thread implements UploaderInterface {
-
-		/**************** TEMPO DI DONWLOAD COSTANTE (PER PARTE) **************/
-		private static final long DOWNLOAD_TIME = 1000;
-		/**********************************************************************/
-
-		/*
-		 * the paramPartNumber resource of paramResource, if paramClient isn't
-		 * already downloading parts from this client
-		 */
-		@Override
-		public ResourcePartInterface downloadPart(final ClientInterface paramClient, final ResourceInterface paramResource, final Integer paramPartNumber) throws RemoteException {
-			// remote checks if client is already downloading
-			ResourcePartInterface part = null;
-			synchronized (uploadingClients) {
-				while (uploadingClients.contains(paramClient)) {
-
-				}
-				uploadingClients.add(paramClient);
-				synchronized (resources) {
-					for (final ResourceInterface res : resources) {
-						if (res.toString().equals(paramResource.toString())) {
-							part = res.getParts().elementAt(paramPartNumber - 1);
-						}
-					}
-				}
-				uploadingClients.remove(paramClient);
-			}
-			try {
-
-				sleep(Uploader.DOWNLOAD_TIME); // simulazione trasferimento
-
-			} catch (final InterruptedException e) {
-				e.printStackTrace();
-			}
-			return part;
-		}
-
-		@Override
-		public void run() {
-
-		}
+	/**
+	 * @param paramResourceToDownload
+	 * @return il minimo tra 
+	 * D' (capacita download), 
+	 * K' num parti mancanti, 
+	 * N' num client disponibili 
+	 */
+	@Override
+	public Integer getMinIndex(final ResourceInterface paramResourceToDownload) throws RemoteException {
+		final Vector<Integer> vettIntegers = new Vector<Integer>();
+		vettIntegers.add(maxDownloadCapacity - currentDownloads); // numero slot download liberi
+		vettIntegers.add(getPartiMancanti().size()); // numero di parti mancanti da scaricare
+		vettIntegers.add(getResourceOwners(paramResourceToDownload.toString()).size() - occupiedClients.size()); // num client disponibili (che non ci stiano gia inviando parti)
+		System.out.println("D'=" + vettIntegers.elementAt(0) + " K'=" + vettIntegers.elementAt(1) + " N'=" + vettIntegers.elementAt(2) + " min(D',K',N')=" + Collections.min(vettIntegers).toString());
+		return Collections.min(vettIntegers);
 	}
 
 	public Client(final String paramClientName, final String paramServerName, final Integer paramDownloadCapacity, final Vector<ResourceInterface> paramResources) throws RemoteException {
@@ -150,26 +104,14 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 		guiClientFrame.getFileSearchButton().addActionListener(this);
 		connectToServer();
 		serverChecker.start();
+		final Downloader myDownloader = new Downloader(this, "DownloaderThread1", downloadingResources);
+		myDownloader.start();
 		// update gui
 		guiClientFrame.setResourceList(paramResources);
-		guiClientFrame.setDownloadQueueList(downloadingParts);
+		guiClientFrame.setDownloadQueueList(downloadingResources);
 	}
 
-	@Override
-	public final void actionPerformed(final ActionEvent e) {
-		guiClientFrame.getFileSearchTextField().requestFocus();
-		if ("search".equals(e.getActionCommand())) {
-			try {
-				performSearch();
-			} catch (NumberFormatException | RemoteException e1) {
-				e1.printStackTrace();
-			}
-		} else {
-			if ("connection".equals(e.getActionCommand())) {
-				connectToServer();
-			}
-		}
-	}
+
 
 	/**
 	 * @param paramResNameString
@@ -235,13 +177,14 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 	 * @return a Vector<ClientInterface> containing ClientsInterfaces who owns
 	 *         paramSearchedResString
 	 */
-	private Vector<ClientInterface> getResourceOwners(final String paramSearchedResourceString) {
+	@Override
+	public Vector<ClientInterface> getResourceOwners(final String paramSearchedResourceString) throws RemoteException {
 		ServerInterface remoteServerInterface = null;
 		final Vector<ClientInterface> owners = new Vector<ClientInterface>();
 		try {
 			remoteServerInterface = (ServerInterface) Naming.lookup(Server.URL_STRING + serverName);
 			for (final ClientInterface cli : remoteServerInterface.resourceOwners(paramSearchedResourceString)) {
-				guiClientFrame.appendLogEntry(cli.getClientName() + "@" + cli.getConnectedServer() + " owns " + paramSearchedResourceString);
+//				guiClientFrame.appendLogEntry(cli.getClientName() + "@" + cli.getConnectedServer() + " owns " + paramSearchedResourceString);
 				owners.add(cli);
 			}
 		} catch (MalformedURLException | RemoteException | NotBoundException e) {
@@ -264,36 +207,32 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 					// check if client is connected
 					if (connectionButtonState.equals("Disconnect")) {
 						final String searchedResString = guiClientFrame.getFileSearchTextField().getValue().toString();
-						// client is connected and check if it already has the
-						// searched
-						// resource
+						// client is connected and check if it already has the searched resource
 						final Boolean checkResultBoolean = checkResourcePossession(searchedResString);
 						// if this client DOESNT own searched resource
-						if (!checkResultBoolean) { // if client hasnt the
-							// Resource, gets
-							// who got it!
-							guiClientFrame.appendLogEntry("ok, i havent " + searchedResString + ", searching for owners.");
-							final Vector<ClientInterface> owners = getResourceOwners(searchedResString);
+						if (!checkResultBoolean) { // if client hasnt the Resource, gets who got it!
+							guiClientFrame.appendLogEntry("ok, i havent " + searchedResString + ", asking servers for owners.");
+							Vector<ClientInterface> owners = null;
+							try {
+								owners = getResourceOwners(searchedResString);
+							} catch (RemoteException e1) {
+								e1.printStackTrace();
+							}
 							// if there are at least one resource owner
-							if (owners.size() > 0) {
-								guiClientFrame.appendLogEntry("Start downloading " + searchedResString);
-
+							if (!owners.isEmpty()) {
+								guiClientFrame.appendLogEntry("There are " + owners.size() + " owners of " + searchedResString);
 								// qui ho: owners, searchedResString
-
-								// final ResourceInterface resourceToDownload =
-								// new
-								// Resource(searchedResString);
-								//
-								// synchronized (downloadingParts) {
-								// downloadingParts.addAll(resourceToDownload.getParts());
-								// downloadingParts.notifyAll();
-								// for (final ResourcePartInterface resInterf :
-								// resourceToDownload.getParts()) {
-								// System.out.println(resInterf +
-								// " added to downloadingparts");
-								// }
-								// }
-
+								ResourceInterface resourceToDownload = null;
+								try {
+									resourceToDownload = new Resource(searchedResString);
+									synchronized (downloadingResources) {
+										downloadingResources.add(resourceToDownload);
+										guiClientFrame.appendLogEntry(resourceToDownload + " added to download list.");
+										downloadingResources.notifyAll();
+									}
+								} catch (NumberFormatException | RemoteException e) {
+									e.printStackTrace();
+								}
 							} else {
 								JOptionPane.showMessageDialog(guiClientFrame, "Resource " + guiClientFrame.getFileSearchTextField().getValue() + " not found in the network, please try searching another resource", "Please try searching another resource.", JOptionPane.INFORMATION_MESSAGE);
 							}
@@ -306,6 +245,40 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 				}
 			}
 		}.start();
+	}
+	
+	@Override
+	public void actionPerformed(final ActionEvent e) {
+		guiClientFrame.getFileSearchTextField().requestFocus();
+		if ("search".equals(e.getActionCommand())) {
+			try {
+				performSearch();
+			} catch (NumberFormatException | RemoteException e1) {
+				e1.printStackTrace();
+			}
+		} else {
+			if ("connection".equals(e.getActionCommand())) {
+				connectToServer();
+			}
+		}
+	}
+	
+	/**
+	 * @return the guiClientFrame
+	 */
+	@Override
+	public ClientFrame getGuiClientFrame() {
+		return guiClientFrame;
+	}
+	
+	@Override
+	public void download() throws RemoteException {
+		try {
+			guiClientFrame.appendLogEntry("One client is downloading...");
+			Thread.sleep(Client.DOWNLOAD_TIME);
+		} catch (final InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -321,5 +294,38 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 	@Override
 	public Vector<ResourceInterface> getResources() {
 		return resources;
+	}
+	
+	@Override
+	public Integer getCurrentDownloads() throws RemoteException {
+		synchronized (currentDownloads) {			
+			return currentDownloads;
+		}
+	}
+
+	@Override
+	public void setCurrentDownloads(Integer currentDownloads) throws RemoteException {
+		synchronized (currentDownloads) {
+			this.currentDownloads = currentDownloads;			
+		}
+	}
+
+	@Override
+	public void incrementCurrentDownloadsCounter() throws RemoteException {
+		synchronized (currentDownloads) {
+			currentDownloads++;
+		}
+	}
+
+	@Override
+	public void decrementCurrentDownloadsCounter() throws RemoteException {
+		synchronized (currentDownloads) {
+			currentDownloads--;
+		}
+	}
+	
+	@Override
+	public Integer getMaxDownloadCapacity() throws RemoteException {
+		return maxDownloadCapacity;
 	}
 }

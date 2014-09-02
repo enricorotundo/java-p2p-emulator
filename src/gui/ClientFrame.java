@@ -105,10 +105,12 @@ public final class ClientFrame extends AbstractBasicFrame {
 		return fileSearchTextField;
 	}
 
-	public void setDownloadQueueList(final Vector<ResourcePartInterface> paramResourcePart) {
+	public void setDownloadQueueList(final Vector<ResourceInterface> paramResource) {
 		final DefaultListModel<ResourcePartInterface> model = new DefaultListModel<ResourcePartInterface>();
-		for (int i = 0; i < paramResourcePart.size(); i++) {
-			model.addElement(paramResourcePart.elementAt(i));
+		for (int i = 0; i < paramResource.size(); i++) {
+			for (final ResourcePartInterface part : paramResource.elementAt(i).getParts()) {
+				model.addElement(part);
+			}
 		}
 		downloadQueueList.setModel(model);
 	}

@@ -166,6 +166,7 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 
 	@Override
 	public Vector<ClientInterface> resourceOwners(final String paramResourceName) throws RemoteException {
+		long startTime = System.nanoTime();
 		final Vector<ClientInterface> searchedResourceOweners = new Vector<ClientInterface>();
 		synchronized (serversMonitor) {
 			for (final ServerInterface serverInterface : connectedServers) {
@@ -181,6 +182,9 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 				}
 			}
 		}
+		long endTime = System.nanoTime();
+		long duration = (endTime - startTime);
+		System.out.println("resourceOwners(" + paramResourceName + ") completed in: " + (duration / 1000000000.0) + " seconds.");
 		return searchedResourceOweners;
 	}
 

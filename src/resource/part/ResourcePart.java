@@ -22,7 +22,6 @@ public final class ResourcePart implements ResourcePartInterface { // Josh
 	private static final long serialVersionUID = 6463128579315535109L;
 	private Integer partNumber = 0;
 	private ResourceInterface ownerResource;
-
 	private TransfertStatus downloadingStatus;
 
 	public ResourcePart(final Integer paramPartNumber,
@@ -32,6 +31,7 @@ public final class ResourcePart implements ResourcePartInterface { // Josh
 		setDownloadingStatus(TransfertStatus.NotStarted);
 	}
 
+	@Override
 	public TransfertStatus getDownloadingStatus() {
 		return downloadingStatus;
 	}
@@ -45,7 +45,8 @@ public final class ResourcePart implements ResourcePartInterface { // Josh
 	public Integer getPartNumber() {
 		return partNumber;
 	}
-
+	
+	@Override
 	public void setDownloadingStatus(final TransfertStatus downloadingStatus) {
 		this.downloadingStatus = downloadingStatus;
 	}

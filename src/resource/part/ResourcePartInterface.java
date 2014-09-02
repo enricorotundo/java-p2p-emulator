@@ -20,5 +20,8 @@ public interface ResourcePartInterface extends Serializable {
 
 	@Override
 	public String toString();
-
+	
+	public void setDownloadingStatus(final TransfertStatus downloadingStatus);
+	
+	public TransfertStatus getDownloadingStatus();
 }

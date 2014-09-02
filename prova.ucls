@@ -55,75 +55,53 @@
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="7" language="java" name="client.Client.Uploader" project="java-p2p-emulator" 
-    file="/java-p2p-emulator/src/client/Client.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="1155" y="349"/>    
-    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
-      visibility="true">      
-      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
-      <operations public="true" package="true" protected="true" private="true" static="true"/>    
-    </display>  
-  </class>  
-  <association id="8">    
+  <association id="7">    
     <bendpoint x="1619" y="298"/>    
     <bendpoint x="1619" y="472"/>    
     <end type="SOURCE" refId="3" navigable="false">      
-      <attribute id="9" name="uploadingClients"/>      
-      <multiplicity id="10" minimum="0" maximum="2147483647"/>    
+      <attribute id="8" name="uploadingClients"/>      
+      <multiplicity id="9" minimum="0" maximum="2147483647"/>    
     </end>    
     <end type="TARGET" refId="2" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
-  <nesting id="11">    
+  <nesting id="10">    
     <bendpoint x="858" y="246"/>    
     <end type="SOURCE" refId="3"/>    
     <end type="TARGET" refId="5"/>  
   </nesting>  
-  <dependency id="12">    
-    <bendpoint x="1370" y="472"/>    
-    <end type="SOURCE" refId="7"/>    
-    <end type="TARGET" refId="2"/>  
-  </dependency>  
-  <association id="13">    
+  <association id="11">    
     <end type="SOURCE" refId="3" navigable="false">      
-      <attribute id="14" name="serverChecker"/>      
-      <multiplicity id="15" minimum="0" maximum="1"/>    
+      <attribute id="12" name="serverChecker"/>      
+      <multiplicity id="13" minimum="0" maximum="1"/>    
     </end>    
     <end type="TARGET" refId="6" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
-  <nesting id="16">    
-    <end type="SOURCE" refId="3"/>    
-    <end type="TARGET" refId="7"/>  
-  </nesting>  
-  <association id="17">    
+  <association id="14">    
     <bendpoint x="823" y="588"/>    
     <end type="SOURCE" refId="5" navigable="false">      
-      <attribute id="18" name="clientInterface"/>      
-      <multiplicity id="19" minimum="0" maximum="1"/>    
+      <attribute id="15" name="clientInterface"/>      
+      <multiplicity id="16" minimum="0" maximum="1"/>    
     </end>    
     <end type="TARGET" refId="2" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
-  <nesting id="20">    
+  <nesting id="17">    
     <end type="SOURCE" refId="3"/>    
     <end type="TARGET" refId="6"/>  
   </nesting>  
-  <realization id="21">    
-    <end type="SOURCE" refId="7"/>    
-    <end type="TARGET" refId="4"/>  
-  </realization>  
-  <realization id="22">    
+  <realization id="18">    
     <bendpoint x="1598" y="298"/>    
     <bendpoint x="1598" y="472"/>    
     <end type="SOURCE" refId="3"/>    
     <end type="TARGET" refId="2"/>  
   </realization>  
-  <dependency id="23">    
+  <dependency id="19">    
     <end type="SOURCE" refId="4"/>    
     <end type="TARGET" refId="2"/>  
   </dependency>  
-  <realization id="24">    
+  <realization id="20">    
     <end type="SOURCE" refId="5"/>    
     <end type="TARGET" refId="1"/>  
   </realization>  
