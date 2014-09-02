@@ -9,7 +9,6 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
 
-import resource.Resource;
 import resource.ResourceInterface;
 import client.ClientInterface;
 
@@ -62,7 +61,7 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 						}
 						// update gui
 						guiServerFrame.setConnectedServersList(connectedServers);
-						sleep(100);
+						sleep(10);
 					} catch (final InterruptedException | RemoteException | MalformedURLException | NotBoundException e) {
 						e.printStackTrace();
 					}
@@ -167,15 +166,14 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 
 	@Override
 	public Vector<ClientInterface> resourceOwners(final String paramResourceName) throws RemoteException {
-		final ResourceInterface paramResource = new Resource(paramResourceName);
 		final Vector<ClientInterface> searchedResourceOweners = new Vector<ClientInterface>();
 		synchronized (serversMonitor) {
 			for (final ServerInterface serverInterface : connectedServers) {
 				for (final ClientInterface cli : serverInterface.getClients()) { //
 					// sync client side
-					guiServerFrame.appendLogEntry("Looking for " + paramResource.toString() + " in " + cli.getClientName() + "@" + serverInterface.getServerNameString());
+					guiServerFrame.appendLogEntry("Looking for " + paramResourceName + " in " + cli.getClientName() + "@" + serverInterface.getServerNameString());
 					for (final ResourceInterface resource : cli.getResources()) {
-						if (resource.equals(paramResource)) {
+						if (resource.resourceCompare(paramResourceName)) {
 							guiServerFrame.appendLogEntry(cli.getClientName() + "@" + serverInterface.getServerNameString() + " has " + resource.toString());
 							searchedResourceOweners.add(cli);
 						}

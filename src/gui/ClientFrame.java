@@ -15,14 +15,14 @@ import javax.swing.JScrollPane;
 
 import resource.Resource.ResourceName;
 import resource.ResourceInterface;
-import resource.part.ResourcePart;
+import resource.part.ResourcePartInterface;
 
 public final class ClientFrame extends AbstractBasicFrame {
 	private JPanel searchFilePanel;
 	protected JPanel resourcesPanel;
 	protected JPanel downloadQueuePanel;
 	private JList<ResourceInterface> completeResourcesList;
-	private JList<ResourcePart> downloadQueueList;
+	private JList<ResourcePartInterface> downloadQueueList;
 	private JFormattedTextField fileSearchTextField;
 	private JButton connectionButton;
 	private JButton fileSearchButton;
@@ -79,7 +79,7 @@ public final class ClientFrame extends AbstractBasicFrame {
 		downloadQueuePanel.setOpaque(true);
 		downloadQueuePanel.setBorder(BorderFactory.createTitledBorder("Download queue"));
 		downloadQueuePanel.setLayout(new BorderLayout());
-		downloadQueueList = new JList<ResourcePart>();
+		downloadQueueList = new JList<ResourcePartInterface>();
 		downloadQueueList.setPreferredSize(new Dimension(getWidth() / 2 - 80, 270));
 		final JScrollPane areaScrollPane1 = new JScrollPane(downloadQueueList);
 		areaScrollPane1.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -105,8 +105,8 @@ public final class ClientFrame extends AbstractBasicFrame {
 		return fileSearchTextField;
 	}
 
-	public void setDownloadQueueList(final Vector<ResourcePart> paramResourcePart) {
-		final DefaultListModel<ResourcePart> model = new DefaultListModel<ResourcePart>();
+	public void setDownloadQueueList(final Vector<ResourcePartInterface> paramResourcePart) {
+		final DefaultListModel<ResourcePartInterface> model = new DefaultListModel<ResourcePartInterface>();
 		for (int i = 0; i < paramResourcePart.size(); i++) {
 			model.addElement(paramResourcePart.elementAt(i));
 		}

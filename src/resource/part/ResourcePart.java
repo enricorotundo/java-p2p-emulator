@@ -3,14 +3,26 @@ package resource.part;
 import java.rmi.RemoteException;
 
 import resource.Resource;
+import resource.ResourceInterface;
 
 public final class ResourcePart implements ResourcePartInterface { // Josh
 	// Bloch's:
 	// "design for inheritance or prohibit it"
 
+	public static ResourcePartInterface createResourcePartInterface(final Integer paramPartNumber,
+			final Resource paramOwnerResource) {
+		ResourcePartInterface newInterface = null;
+		try {
+			newInterface = new ResourcePart(paramPartNumber, paramOwnerResource);
+		} catch (final RemoteException e) {
+			e.printStackTrace();
+		}
+		return newInterface;
+	}
 	private static final long serialVersionUID = 6463128579315535109L;
 	private Integer partNumber = 0;
-	private Resource ownerResource;
+	private ResourceInterface ownerResource;
+
 	private TransfertStatus downloadingStatus;
 
 	public ResourcePart(final Integer paramPartNumber,
@@ -24,7 +36,8 @@ public final class ResourcePart implements ResourcePartInterface { // Josh
 		return downloadingStatus;
 	}
 
-	public Resource getOwnerResource() {
+	@Override
+	public ResourceInterface getOwnerResource() {
 		return ownerResource;
 	}
 

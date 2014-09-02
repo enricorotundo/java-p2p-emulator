@@ -7,6 +7,7 @@ import java.util.Vector;
 import javax.swing.text.MaskFormatter;
 
 import resource.part.ResourcePart;
+import resource.part.ResourcePartInterface;
 
 // Josh Bloch's: "design for inheritance or prohibit it"
 public final class Resource implements ResourceInterface {
@@ -34,9 +35,9 @@ public final class Resource implements ResourceInterface {
 			}
 			return formatter;
 		}
+
 		private static final long serialVersionUID = 7377971239594224445L;
 		private final Character resourceName;
-
 		private final Integer numberOfParts;
 
 		/**
@@ -81,13 +82,13 @@ public final class Resource implements ResourceInterface {
 
 	private static final long serialVersionUID = -8240063610816799938L;
 	private final ResourceName name;
-	private final Vector<ResourcePart> resourceParts;
+	private final Vector<ResourcePartInterface> resourceParts;
 
 	public Resource(final Character paramName, final Integer paramNumberOfParts) throws RemoteException {
 		name = new ResourceName(paramName, paramNumberOfParts);
-		resourceParts = new Vector<ResourcePart>();
+		resourceParts = new Vector<ResourcePartInterface>();
 		for (int i = 1; i <= paramNumberOfParts; i++) {
-			resourceParts.add(new ResourcePart(i, this));
+			resourceParts.add(ResourcePart.createResourcePartInterface(i, this));
 		}
 	}
 
@@ -102,6 +103,20 @@ public final class Resource implements ResourceInterface {
 	 */
 	public Resource(final String paramText) throws NumberFormatException, RemoteException {
 		this(paramText.charAt(0), Integer.parseInt(String.valueOf(paramText.charAt(2))));
+	}
+
+	/* (non-Javadoc)
+	 * @see resource.ResourceInterface#createResource(java.lang.Character, java.lang.Integer)
+	 */
+	@Override
+	public ResourceInterface createResource(final Character paramName, final Integer paramNumberOfParts) {
+		ResourceInterface newResourceInterface = null;
+		try {
+			newResourceInterface = new Resource(paramName, paramNumberOfParts);
+		} catch (final RemoteException e) {
+			e.printStackTrace();
+		}
+		return newResourceInterface;
 	}
 
 	@Override
@@ -120,8 +135,22 @@ public final class Resource implements ResourceInterface {
 	}
 
 	@Override
-	public Vector<ResourcePart> getParts() {
+	public Vector<ResourcePartInterface> getParts() {
 		return resourceParts;
+	}
+
+	@Override
+	public Boolean resourceCompare(final String paramResName) {
+		Boolean resultBoolean = false;
+		try {
+			final ResourceInterface toCompare = new Resource(paramResName);
+			if (this.equals(toCompare)) {
+				resultBoolean = true;
+			}
+		} catch (NumberFormatException | RemoteException e) {
+			e.printStackTrace();
+		}
+		return resultBoolean;
 	}
 
 	@Override

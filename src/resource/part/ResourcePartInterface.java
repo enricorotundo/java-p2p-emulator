@@ -2,7 +2,12 @@ package resource.part;
 
 import java.io.Serializable;
 
+import resource.ResourceInterface;
+
 public interface ResourcePartInterface extends Serializable {
+
+	public ResourceInterface getOwnerResource();
+
 	/**
 	 * Gets the part number.
 	 *
