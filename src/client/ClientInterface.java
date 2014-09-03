@@ -37,13 +37,13 @@ public interface ClientInterface extends Remote {
 	
 	public Vector<ClientInterface> getResourceOwners(final String paramSearchedResourceString) throws RemoteException;
 	
-	public void incrementCurrentDownloadsCounter() throws RemoteException;
-	
-	public void decrementCurrentDownloadsCounter() throws RemoteException;
-	
-	public Integer getCurrentDownloads() throws RemoteException;
-
-	public void setCurrentDownloads(Integer currentDownloads) throws RemoteException ;
-	
 	public Integer getMaxDownloadCapacity() throws RemoteException;
+
+	public void incrementCount() throws RemoteException;
+	
+	public void decrementCount() throws RemoteException;
+
+	public int getCount() throws RemoteException;
+	
+	public Vector<ClientInterface> getClientsBusyWithMe() throws RemoteException;
 }

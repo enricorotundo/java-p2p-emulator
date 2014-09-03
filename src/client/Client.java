@@ -12,6 +12,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.JOptionPane;
 import javax.xml.crypto.Data;
@@ -27,19 +28,23 @@ import client.Downloader;
 public final class Client extends UnicastRemoteObject implements ClientInterface, ActionListener {
 
 	/**************** TEMPO DI DONWLOAD COSTANTE (PER PARTE) **************/
-	public static final long DOWNLOAD_TIME = 500;
+	public static final long DOWNLOAD_TIME = 1500;
 	/**********************************************************************/
 
 	private static final long serialVersionUID = 6917781270556644082L;
+	private final String clientName;
+	private final String serverName;
+	private AtomicInteger currentDownloads = new AtomicInteger(0);
+	private final Integer maxDownloadCapacity;
+	private final Downloader myDownloader; 
+	
+	/**** RISORSE CONDIVISE DA SINCRONIZZARE *****/
+	private final Vector<ClientInterface> clientsBusyWithMe = new Vector<ClientInterface>();
+	private final ConnectionChecker connectionToServerChecker = new ConnectionChecker();
 	private final Vector<ResourceInterface> resources;
 	private final Vector<ResourceInterface> downloadingResources = new Vector<ResourceInterface>();
 	private final ClientFrame guiClientFrame;
-	private final String clientName;
-	private final Integer maxDownloadCapacity;
-	private Integer currentDownloads = 0;
-	private final String serverName;
-	private final ConnectionChecker serverChecker = new ConnectionChecker();
-	private final Vector<ClientInterface> occupiedClients = new Vector<ClientInterface>();
+	/*********************************************/
 
 	class ConnectionChecker extends Thread {
 		@Override
@@ -47,15 +52,27 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 			while (true) {
 				try {
 					sleep(100);
-					Naming.lookup(Server.URL_STRING + serverName);
+					synchronized (guiClientFrame.getConnectionButton()) {
+						// controllo la connessione solo se sono connesso
+						if (guiClientFrame.getConnectionButton().getText().equals("Disconnect")) {
+							Naming.lookup(Server.URL_STRING + serverName);	
+						}						
+					}
 				} catch (MalformedURLException | RemoteException | InterruptedException e) {
 					e.printStackTrace();
 				} catch (final NotBoundException e) {
-					guiClientFrame.getConnectionButton().setText("Connect");
+					synchronized (guiClientFrame.getConnectionButton()) {
+						guiClientFrame.getConnectionButton().setText("Connect");						
+					}
+					// l'insert e' gia synchronized
 					guiClientFrame.appendLogEntry("Disconnected from " + serverName + " because seems offline.");
-					synchronized (serverChecker) {
+					synchronized (connectionToServerChecker) {
 						try {
-							serverChecker.wait();
+							/*
+							 * viene risvegliato in connectToServer() cioe quando
+							 * il client si riconnette al server serverName
+							 */
+							connectionToServerChecker.wait();
 						} catch (final InterruptedException e1) {
 							e1.printStackTrace();
 						}
@@ -70,8 +87,10 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 	 */
 	private Vector<ResourcePartInterface> getPartiMancanti() {
 		Vector<ResourcePartInterface> parts = new Vector<ResourcePartInterface>();
-		for (ResourceInterface res : downloadingResources) {
-			parts.addAll(res.getParts());
+		synchronized (downloadingResources) {
+			for (ResourceInterface res : downloadingResources) {
+				parts.addAll(res.getParts());
+			}			
 		}
 		return parts;
 	}
@@ -80,9 +99,12 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 	public Integer getMinIndex(final ResourceInterface paramResourceToDownload) throws RemoteException {
 		long startTime = System.nanoTime();
 		final Vector<Integer> vettIntegers = new Vector<Integer>();
-		vettIntegers.add(maxDownloadCapacity - currentDownloads); // numero slot download liberi
+		// getcount e' atomica
+		vettIntegers.add(maxDownloadCapacity - getCount()); // numero slot download liberi
+		// e' gia sincronizzata
 		vettIntegers.add(getPartiMancanti().size()); // numero di parti mancanti da scaricare
-		vettIntegers.add(getResourceOwners(paramResourceToDownload.toString()).size() - occupiedClients.size()); // num client disponibili (che non ci stiano gia inviando parti)
+		// getResourceOwners non usa risorse condivise, paramResourceToDownload e' final, getClientsBusyWithMe() e' sincronizzata
+		vettIntegers.add(getResourceOwners(paramResourceToDownload.toString()).size() - getClientsBusyWithMe().size()); // num client disponibili (che non ci stiano gia inviando parti)			
 		Integer result = Collections.min(vettIntegers);
 		long endTime = System.nanoTime();
 		long duration = (endTime - startTime);
@@ -94,19 +116,42 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 		clientName = paramClientName;
 		serverName = paramServerName;
 		maxDownloadCapacity = paramDownloadCapacity;
-		resources = paramResources;
+		// non serve sincronizzare perche' gli altri thread che la usano devono ancora partire
+		resources = paramResources;			
 		guiClientFrame = new ClientFrame(clientName + "@" + serverName);
 		guiClientFrame.getConnectionButton().addActionListener(this);
 		guiClientFrame.getFileSearchButton().addActionListener(this);
 		connectToServer();
-		serverChecker.start();
-		final Downloader myDownloader = new Downloader(this, "DownloaderThread1", downloadingResources);
+		connectionToServerChecker.start();
+		myDownloader = new Downloader(this, "DownloaderThread1", downloadingResources);
 		myDownloader.start();
 		// update gui
-		guiClientFrame.setResourceList(paramResources);
-		guiClientFrame.setDownloadQueueList(downloadingResources);
+		synchronized (resources) {
+			guiClientFrame.setResourceList(resources);			
+		}
+		synchronized (downloadingResources) {			
+			guiClientFrame.setDownloadQueueList(downloadingResources);
+		}
+		
+		// quando chiudo il client mi disconnetto dal server
+		final ClientInterface thisClientInterface = this;
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				try {
+					synchronized (guiClientFrame.getConnectionButton()) {
+						// mi disconnetto solo se ero connesso
+						if (guiClientFrame.getConnectionButton().getText().equals("Disconnect")) {
+							final ServerInterface remoteServerInterface = (ServerInterface) Naming.lookup(Server.URL_STRING + serverName);
+							remoteServerInterface.clientDisconnect(thisClientInterface);							
+						}
+					}
+				} catch (MalformedURLException | RemoteException | NotBoundException e) {
+					e.printStackTrace();
+				}
+			}
+		});
 	}
-
 
 
 	/**
@@ -114,17 +159,19 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 	 * @return true only if client has a resource called paramResNameString
 	 */
 	private Boolean checkResourcePossession(final String paramResNameString) {
+		long startTime = System.nanoTime();
 		Boolean result = false;
 		guiClientFrame.appendLogEntry("Searching for: " + paramResNameString);
 		try {
 			synchronized (resources) {
-				if (resources.contains(new Resource(paramResNameString))) {
-					result = true;
-				}
+				result = resources.contains(new Resource(paramResNameString));
 			}
 		} catch (NumberFormatException | RemoteException e) {
 			e.printStackTrace();
 		}
+		long endTime = System.nanoTime();
+		long duration = (endTime - startTime);
+		System.out.println("checkResourcePossession(" + paramResNameString + ") completed in: " + (duration / 1000000000.0) + " seconds.");
 		return result;
 	}
 
@@ -145,8 +192,8 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 							if (remoteServerInterface.clientConnect(thisClientInterface) == 1) {
 								guiClientFrame.appendLogEntry("Connected to " + serverName);
 								guiClientFrame.getConnectionButton().setText("Disconnect");
-								synchronized (serverChecker) {
-									serverChecker.notifyAll();
+								synchronized (connectionToServerChecker) {
+									connectionToServerChecker.notifyAll();
 								}
 							} else { // connection failed
 								guiClientFrame.appendLogEntry("Problems connecting to " + serverName);
@@ -168,20 +215,17 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 		}.start();
 	}
 
-	/**
-	 * @param paramSearchedResourceString
-	 * @return a Vector<ClientInterface> containing ClientsInterfaces who owns
-	 *         paramSearchedResString
-	 */
 	@Override
 	public Vector<ClientInterface> getResourceOwners(final String paramSearchedResourceString) throws RemoteException {
 		ServerInterface remoteServerInterface = null;
 		final Vector<ClientInterface> owners = new Vector<ClientInterface>();
 		try {
 			remoteServerInterface = (ServerInterface) Naming.lookup(Server.URL_STRING + serverName);
-			for (final ClientInterface cli : remoteServerInterface.resourceOwners(paramSearchedResourceString)) {
-//				guiClientFrame.appendLogEntry(cli.getClientName() + "@" + cli.getConnectedServer() + " owns " + paramSearchedResourceString);
-				owners.add(cli);
+			if (remoteServerInterface != null) {
+				for (final ClientInterface cli : remoteServerInterface.resourceOwners(paramSearchedResourceString)) {
+					guiClientFrame.appendLogEntry(cli.getClientName() + "@" + cli.getConnectedServer() + " owns " + paramSearchedResourceString);
+					owners.add(cli);
+				}				
 			}
 		} catch (MalformedURLException | RemoteException | NotBoundException e) {
 			e.printStackTrace();
@@ -194,52 +238,58 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 		new Thread() {
 			@Override
 			public void run() {
-				guiClientFrame.getFileSearchTextField().requestFocus();
-				// check for text field empty
-				if (guiClientFrame.getFileSearchTextField().getValue() == null) {
-					JOptionPane.showMessageDialog(guiClientFrame, "Please enter a file name.", "File name empty", JOptionPane.WARNING_MESSAGE);
-				} else {
-					final String connectionButtonState = guiClientFrame.getConnectionButton().getText().toString();
-					// check if client is connected
-					if (connectionButtonState.equals("Disconnect")) {
-						final String searchedResString = guiClientFrame.getFileSearchTextField().getValue().toString();
-						// client is connected and check if it already has the searched resource
-						final Boolean checkResultBoolean = checkResourcePossession(searchedResString);
-						// if this client DOESNT own searched resource
-						if (!checkResultBoolean) { // if client hasnt the Resource, gets who got it!
-							guiClientFrame.appendLogEntry("ok, i havent " + searchedResString + ", asking servers for owners.");
-							Vector<ClientInterface> owners = null;
-							try {
-								owners = getResourceOwners(searchedResString);
-							} catch (RemoteException e1) {
-								e1.printStackTrace();
-							}
-							// if there are at least one resource owner
-							if (!owners.isEmpty()) {
-								guiClientFrame.appendLogEntry("There are " + owners.size() + " owners of " + searchedResString);
-								// qui ho: owners, searchedResString
-								ResourceInterface resourceToDownload = null;
-								try {
-									resourceToDownload = new Resource(searchedResString);
-									synchronized (downloadingResources) {
-										downloadingResources.add(resourceToDownload);
-										guiClientFrame.appendLogEntry(resourceToDownload + " added to download list.");
-										downloadingResources.notifyAll();
-									}
-								} catch (NumberFormatException | RemoteException e) {
-									e.printStackTrace();
-								}
-							} else {
-								JOptionPane.showMessageDialog(guiClientFrame, "Resource " + guiClientFrame.getFileSearchTextField().getValue() + " not found in the network, please try searching another resource", "Please try searching another resource.", JOptionPane.INFORMATION_MESSAGE);
-							}
+				synchronized (guiClientFrame.getFileSearchTextField()) {
+						guiClientFrame.getFileSearchTextField().requestFocus();
+						// check for text field empty
+						if (guiClientFrame.getFileSearchTextField().getValue() == null || guiClientFrame.getFileSearchTextField().getText() == "") {
+							JOptionPane.showMessageDialog(guiClientFrame, "Please enter a file name.", "File name empty", JOptionPane.WARNING_MESSAGE);
 						} else {
-							JOptionPane.showMessageDialog(guiClientFrame, "You cannon't download a owned resource, please try searching another one.", "You already own searched resource.", JOptionPane.INFORMATION_MESSAGE);
+							final String connectionButtonState;
+							// e' in concorrenza con connectToServer()
+							synchronized (guiClientFrame.getConnectionButton()) {
+								connectionButtonState = guiClientFrame.getConnectionButton().getText().toString();								
+								// check if client is connected
+								if (connectionButtonState.equals("Disconnect")) {
+									final String searchedResString = guiClientFrame.getFileSearchTextField().getValue().toString();
+									// client is connected and check if it already has the searched resource
+									final Boolean checkResultBoolean = checkResourcePossession(searchedResString);
+									// if this client DOESNT own searched resource
+									if (!checkResultBoolean) { // if client hasnt the Resource, gets who got it!
+										guiClientFrame.appendLogEntry("ok, i havent " + searchedResString + ", asking " + serverName + " for owners.");
+										Vector<ClientInterface> owners = null;
+										try {
+											owners = getResourceOwners(searchedResString);
+										} catch (RemoteException e1) {
+											e1.printStackTrace();
+										}
+										// if there are at least one resource owner
+										if (!owners.isEmpty()) {
+											guiClientFrame.appendLogEntry("There are " + owners.size() + " owners of " + searchedResString);
+											// qui ho: owners, searchedResString
+											ResourceInterface resourceToDownload = null;
+											try {
+												resourceToDownload = new Resource(searchedResString);
+												synchronized (downloadingResources) {
+													downloadingResources.add(resourceToDownload);
+													guiClientFrame.appendLogEntry(resourceToDownload + " added to download list.");
+													downloadingResources.notifyAll();
+												}
+											} catch (NumberFormatException | RemoteException e) {
+												e.printStackTrace();
+											}
+										} else {
+											JOptionPane.showMessageDialog(guiClientFrame, "Resource " + guiClientFrame.getFileSearchTextField().getValue() + " not found in the network, please try searching another resource", "Please try searching another resource.", JOptionPane.INFORMATION_MESSAGE);
+										}
+									} else {
+										JOptionPane.showMessageDialog(guiClientFrame, "You cannon't download a owned resource, please try searching another one.", "You already own searched resource.", JOptionPane.INFORMATION_MESSAGE);
+									}
+								} else {
+									JOptionPane.showMessageDialog(guiClientFrame, "Please connect first.", "Please connect first", JOptionPane.ERROR_MESSAGE);
+								}
+							}
 						}
-					} else {
-						JOptionPane.showMessageDialog(guiClientFrame, "Please connect first.", "Please connect first", JOptionPane.ERROR_MESSAGE);
-					}
+					}	
 				}
-			}
 		}.start();
 	}
 	
@@ -276,6 +326,21 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 			e.printStackTrace();
 		}
 	}
+	
+	@Override
+	public void incrementCount() {
+		currentDownloads.incrementAndGet();
+	}
+	
+	@Override
+	public void decrementCount() {
+		currentDownloads.decrementAndGet();
+	}
+	  
+	@Override
+	public int getCount() {
+	    return currentDownloads.get();
+	}
 
 	@Override
 	public String getClientName() throws RemoteException {
@@ -293,37 +358,14 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 	}
 	
 	@Override
-	public Integer getCurrentDownloads() throws RemoteException {
-		synchronized (currentDownloads) {			
-			return currentDownloads;
-		}
-	}
-
-	@Override
-	public void setCurrentDownloads(Integer currentDownloads) throws RemoteException {
-		synchronized (currentDownloads) {
-			this.currentDownloads = currentDownloads;			
-		}
-	}
-
-	@Override
-	public void incrementCurrentDownloadsCounter() throws RemoteException {
-		guiClientFrame.appendLogEntry("incrmento " + currentDownloads + " -> " + (currentDownloads + 1));
-		synchronized (currentDownloads) {
-			currentDownloads++;
-		}
-	}
-
-	@Override
-	public void decrementCurrentDownloadsCounter() throws RemoteException {
-		guiClientFrame.appendLogEntry("Decrmento " + currentDownloads + " -> " + (currentDownloads  - 1));
-		synchronized (currentDownloads) {
-			currentDownloads--;
-		}
+	public Integer getMaxDownloadCapacity() throws RemoteException {
+		return maxDownloadCapacity;
 	}
 	
 	@Override
-	public Integer getMaxDownloadCapacity() throws RemoteException {
-		return maxDownloadCapacity;
+	public Vector<ClientInterface> getClientsBusyWithMe() {
+		synchronized (clientsBusyWithMe) {
+			return clientsBusyWithMe;			
+		}
 	}
 }

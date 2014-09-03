@@ -13,53 +13,17 @@ import resource.part.TransfertStatus;
 class Downloader extends Thread implements DownloaderInterface {
 	private ClientInterface clientInterface;
 	private String nameString;
-	private Vector<ResourceInterface> downloadingResources;
 	private Vector<ResourcePartInterface> downloadingParts = new Vector<ResourcePartInterface>();
 	private Vector<ResourcePartInterface> completeParts = new Vector<ResourcePartInterface>();
-	private final Vector<ClientInterface> clientsBusyWithMe = new Vector<ClientInterface>();
 
-	//vedo se in downlodaing parts ci sono tutte le parti che compongono
-	//una delle risorse che sta in downloadingResources
-	//se si devo spostare la risorsa completamente scaricata tra le risorse
-	//del client
-	private void refreshDownloadingLists() {
-		long startTime = System.nanoTime();
-		
-		
-		
-		
-		
-		
-//		System.out.println("qui arrivo?");
-//		synchronized (downloadingResources) {
-////		try {
-//			for (ResourceInterface res : downloadingResources) {
-//				System.out.println(" " + res);
-////				if (downloadingParts.containsAll(res.getParts())) {
-////////					downloadingParts.removeAll(res.getParts());
-//////					downloadingResources.remove(res);
-//////					clientInterface.getResources().add(res);
-//////					// update gui
-//////					clientInterface.getGuiClientFrame().setDownloadQueueList(downloadingResources);
-//////					clientInterface.getGuiClientFrame().setResourceList(clientInterface.getResources());
-////				}
-//			}
-////		} catch (RemoteException e) {
-////			e.printStackTrace();
-////		}	
-//		}
-		long endTime = System.nanoTime();
-		long duration = (endTime - startTime);
-		System.out.println("refreshDownloadingLists() completed in: " + (duration / 1000000000.0) + " seconds.");
-	}
+	/**** RISORSE CONDIVISE DA SINCRONIZZARE *****/
+	private Vector<ResourceInterface> downloadingResources; // condiviso con Client
+	/*********************************************/
 	
 	public Downloader(final ClientInterface paramClientInterface, final String paramName, Vector<ResourceInterface> paramDownloadingResources) {
 		clientInterface = paramClientInterface;
 		nameString = paramName;
-		/*
-		 * l'eventuale lock e sull oggetto non sul riferimento, il ref e locale
-		 * ma l'oggetto sta nel client! 
-		 */
+		// il lock e' sull oggetto non sul riferimento, il ref e' locale ma l'oggetto sta nel client! 
 		downloadingResources = paramDownloadingResources;
 	}
 
@@ -78,12 +42,18 @@ class Downloader extends Thread implements DownloaderInterface {
 					// controllo che ci siano risorse da scaricare
 					if (downloadingResources.size() <= 0) {
 						clientInterface.getGuiClientFrame().appendLogEntry("No parts to download, see you later! by " + nameString);
+						/*
+						 *  viene risvegliato da Client.performSearch() che aggiunge 
+						 *  a downloadingResources le risorse da scaricare e risveglia
+						 *  i thread in wait su downloadingResources  
+						 */
 						downloadingResources.wait();
 					}
 					
-					// qui ce qualcosa da scaricare, controllo se posso scaricarle
-					if (clientInterface.getCurrentDownloads().equals(clientInterface.getMaxDownloadCapacity())) {
-						clientInterface.getGuiClientFrame().appendLogEntry("Download capacity reached... wait.");
+					// qui ce qualcosa da scaricare, controllo se lo posso scaricare
+					if (clientInterface.getCount() >= clientInterface.getMaxDownloadCapacity()) {
+						clientInterface.getGuiClientFrame().appendLogEntry("Download capacity reached... wait.");			
+						
 						downloadingResources.wait();
 					}
 					
@@ -92,7 +62,7 @@ class Downloader extends Thread implements DownloaderInterface {
 						
 						// update gui
 						clientInterface.getGuiClientFrame().setDownloadQueueList(downloadingResources);
-		
+						clientInterface.getGuiClientFrame().repaint();
 						
 						// this cicla tra le risorse in coda di download
 						if(resourceIndex.equals(downloadingResources.size() - 1))
@@ -115,6 +85,10 @@ class Downloader extends Thread implements DownloaderInterface {
 								downloadingResources.remove(resToDownload);
 								clientInterface.getResources().add(resToDownload);
 								clientInterface.getGuiClientFrame().setResourceList(clientInterface.getResources());
+								//vedo se in downlodaing parts ci sono tutte le parti che compongono
+								//una delle risorse che sta in downloadingResources
+								//se si devo spostare la risorsa completamente scaricata tra le risorse
+								//del client
 							}
 						}
 						
@@ -190,9 +164,9 @@ class Downloader extends Thread implements DownloaderInterface {
 												 */
 												while (selecetdOwner == null) {
 													for (int j = 0; j < owners.size(); j++) {
-														if (!clientsBusyWithMe.contains(owners.elementAt(j))) {
+														if (!clientInterface.getClientsBusyWithMe().contains(owners.elementAt(j))) {
 															selecetdOwner = owners.elementAt(j);
-															clientsBusyWithMe.add(selecetdOwner);
+															clientInterface.getClientsBusyWithMe().add(selecetdOwner);
 														} 
 													}
 													sleep(Client.DOWNLOAD_TIME);
@@ -203,20 +177,21 @@ class Downloader extends Thread implements DownloaderInterface {
 												 * qui selecetdOwner != null
 												 * prodedo con il download
 												 */ 
-												clientInterface.incrementCurrentDownloadsCounter();
+												clientInterface.incrementCount();
 												clientInterface.getGuiClientFrame().appendLogEntry(this.toString() + ":prima di chiedere il download da " + selecetdOwner.getClientName());
 												selecetdOwner.download(); //NOTA: chiamata BLOCCANTE!!!!!!
-												clientsBusyWithMe.remove(selecetdOwner);
+												clientInterface.getClientsBusyWithMe().remove(selecetdOwner);
 												clientInterface.getGuiClientFrame().appendLogEntry(this.toString() + ":DOPO aver compleato il download da " + selecetdOwner.getClientName());
-												clientInterface.decrementCurrentDownloadsCounter();	
+												clientInterface.decrementCount();
 												// aggiungo la parte scaricata a una lista di scaricati cosi posso controllare quando in questa lista ho una risorsa intera
 												completeParts.add(partToDownload);
 												downloadingParts.remove(partToDownload);
 												partToDownload.setDownloadingStatus(TransfertStatus.Completed);
-												clientInterface.getGuiClientFrame().appendLogEntry(this.toString() + ":prima di eliminare dalla lista download le risorse completamente scaricate");
-												// elimino dall lista download le risorse di cui ho ottenuto TUTTE le parti			
-//												refreshDownloadingLists();
-												clientInterface.getGuiClientFrame().appendLogEntry(this.toString() + ":dopo di eliminare dalla lista download le risorse completamente scaricate");
+												
+												clientInterface.getGuiClientFrame().appendLogEntry(this.toString() + ":prima di ridisegnare la finestra");
+												// update gui
+												clientInterface.getGuiClientFrame().repaint();
+												clientInterface.getGuiClientFrame().appendLogEntry(this.toString() + ":dopo aver prima di ridisegato la finestra");
 
 												
 												clientInterface.getGuiClientFrame().appendLogEntry(this.toString() + ": ending");

@@ -56,30 +56,34 @@ public final class ServerFrame extends AbstractBasicFrame {
 	}
 
 	public void setConnectedClientsList(final Vector<ClientInterface> paramClientInterface) {
-		final DefaultListModel<String> model = new DefaultListModel<String>();
-		for (int i = 0; i < paramClientInterface.size(); i++) {
-			final String srvNameString;
-			try {
-				srvNameString = paramClientInterface.elementAt(i).getClientName();
-				model.addElement(srvNameString);
-			} catch (final RemoteException e) {
-				e.printStackTrace();
+		synchronized (connectedServersList) {
+			final DefaultListModel<String> model = new DefaultListModel<String>();
+			for (int i = 0; i < paramClientInterface.size(); i++) {
+				final String srvNameString;
+				try {
+					srvNameString = paramClientInterface.elementAt(i).getClientName();
+					model.addElement(srvNameString);
+				} catch (final RemoteException e) {
+					e.printStackTrace();
+				}
 			}
-		}
-		connectedClientsList.setModel(model);
+			connectedClientsList.setModel(model);	
+		}		
 	}
 
 	public void setConnectedServersList(final Vector<ServerInterface> paramServerInterface) {
-		try {
-			final DefaultListModel<String> model = new DefaultListModel<String>();
-			for (int i = 0; i < paramServerInterface.size(); i++) {
-				final String srvNameString;
-				srvNameString = paramServerInterface.elementAt(i).getServerNameString();
-				model.addElement(srvNameString);
-			}
-			connectedServersList.setModel(model);
-		} catch (final RemoteException e) {
-			e.printStackTrace();
+		synchronized (connectedServersList) {
+			try {
+				final DefaultListModel<String> model = new DefaultListModel<String>();
+				for (int i = 0; i < paramServerInterface.size(); i++) {
+					final String srvNameString;
+					srvNameString = paramServerInterface.elementAt(i).getServerNameString();
+					model.addElement(srvNameString);
+				}
+				connectedServersList.setModel(model);
+			} catch (final RemoteException e) {
+				e.printStackTrace();
+			}			
 		}
 	}
 }

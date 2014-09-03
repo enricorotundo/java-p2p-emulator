@@ -50,6 +50,7 @@ public abstract class AbstractBasicFrame extends JFrame {
 
 	/**
 	 * Insert a new entry in the log area with a carriage return at the end.
+	 * NOTE: insert is synchronized!
 	 * @param logEntry is the String to be inserted into the log.
 	 */
 	public void appendLogEntry(final String logEntry) {

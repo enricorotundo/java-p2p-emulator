@@ -14,6 +14,22 @@ import client.ClientInterface;
 
 public final class Server extends UnicastRemoteObject implements ServerInterface {
 
+	private static final long serialVersionUID = -2240153419231304793L;
+	private static final String HOST = "localhost";
+	public static final String URL_STRING = "rmi://" + HOST + "/Server/";
+	private final String serverNameString;
+
+	private final ServerChecker srvChecker = new ServerChecker();
+	private final ClientChecker clisChecker = new ClientChecker();
+	private final Object clientsMonitor = new Object();
+	private final Object serversMonitor = new Object();
+
+	/**** RISORSE CONDIVISE DA SINCRONIZZARE *****/
+	private final ServerFrame guiServerFrame;
+	private final Vector<ClientInterface> connectedClients = new Vector<ClientInterface>();
+	private final Vector<ServerInterface> connectedServers = new Vector<ServerInterface>();
+	/*********************************************/
+	
 	private class ClientChecker extends Thread {
 		public ClientChecker() {
 			setDaemon(true);
@@ -23,18 +39,23 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 		public void run() {
 			while (true) {
 				synchronized (clientsMonitor) {
-					try {
+					try {													
 						for (final ClientInterface client : connectedClients) {
 							try {
+								// throws a RemoteException if client is unreacheable
 								client.getConnectedServer();
-							} catch (final Exception e) {
+							} catch (final RemoteException e) {
 								connectedClients.remove(client);
 								guiServerFrame.appendLogEntry("Client disconnected.");
-								// update gui
+								// update gui, sincronizzata server side
 								guiServerFrame.setConnectedClientsList(connectedClients);
 							}
 						}
-						clientsMonitor.wait();
+						/*
+						 * risvegliata da clientConnect e clientDisconnect:
+						 * 
+						 */
+						clientsMonitor.wait();	
 					} catch (final InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -73,18 +94,7 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 			}
 		}
 	}
-
-	private static final long serialVersionUID = -2240153419231304793L;
-	private static final String HOST = "localhost";
-	public static final String URL_STRING = "rmi://" + HOST + "/Server/";
-	private final String serverNameString;
-	private final ServerFrame guiServerFrame;
-	private final Vector<ClientInterface> connectedClients = new Vector<ClientInterface>();
-	private final Vector<ServerInterface> connectedServers = new Vector<ServerInterface>();
-	private final ServerChecker srvChecker = new ServerChecker();
-	private final ClientChecker clisChecker = new ClientChecker();
-	private final Object clientsMonitor = new Object();
-	private final Object serversMonitor = new Object();
+	
 
 	public Server(final String paramServerName) throws RemoteException {
 		serverNameString = paramServerName;
