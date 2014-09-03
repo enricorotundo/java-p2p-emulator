@@ -78,12 +78,16 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 
 	@Override
 	public Integer getMinIndex(final ResourceInterface paramResourceToDownload) throws RemoteException {
+		long startTime = System.nanoTime();
 		final Vector<Integer> vettIntegers = new Vector<Integer>();
 		vettIntegers.add(maxDownloadCapacity - currentDownloads); // numero slot download liberi
 		vettIntegers.add(getPartiMancanti().size()); // numero di parti mancanti da scaricare
 		vettIntegers.add(getResourceOwners(paramResourceToDownload.toString()).size() - occupiedClients.size()); // num client disponibili (che non ci stiano gia inviando parti)
-		System.out.println("D'=" + vettIntegers.elementAt(0) + " K'=" + vettIntegers.elementAt(1) + " N'=" + vettIntegers.elementAt(2) + " min(D',K',N')=" + Collections.min(vettIntegers).toString());
-		return Collections.min(vettIntegers);
+		Integer result = Collections.min(vettIntegers);
+		long endTime = System.nanoTime();
+		long duration = (endTime - startTime);
+		System.out.println("D'=" + vettIntegers.elementAt(0) + " K'=" + vettIntegers.elementAt(1) + " N'=" + vettIntegers.elementAt(2) + " min(D',K',N')=" + result.toString() + " completed in: " + (duration / 1000000000.0) + " seconds.");
+		return result;
 	}
 
 	public Client(final String paramClientName, final String paramServerName, final Integer paramDownloadCapacity, final Vector<ResourceInterface> paramResources) throws RemoteException {

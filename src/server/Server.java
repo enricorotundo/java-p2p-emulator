@@ -51,6 +51,11 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 		@Override
 		public void run() {
 			while (true) {
+				try {
+					sleep(200);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
 				synchronized (serversMonitor) {
 					try {
 						final String[] list = Naming.list(Server.URL_STRING);
@@ -61,8 +66,7 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 						}
 						// update gui
 						guiServerFrame.setConnectedServersList(connectedServers);
-						sleep(10);
-					} catch (final InterruptedException | RemoteException | MalformedURLException | NotBoundException e) {
+					} catch (final RemoteException | MalformedURLException | NotBoundException e) {
 						e.printStackTrace();
 					}
 				}

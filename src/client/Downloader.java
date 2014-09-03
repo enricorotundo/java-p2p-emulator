@@ -4,6 +4,8 @@ import java.rmi.RemoteException;
 import java.util.Iterator;
 import java.util.Vector;
 
+import javax.swing.JOptionPane;
+
 import resource.ResourceInterface;
 import resource.part.ResourcePartInterface;
 import resource.part.TransfertStatus;
@@ -13,6 +15,7 @@ class Downloader extends Thread implements DownloaderInterface {
 	private String nameString;
 	private Vector<ResourceInterface> downloadingResources;
 	private Vector<ResourcePartInterface> downloadingParts = new Vector<ResourcePartInterface>();
+	private Vector<ResourcePartInterface> completeParts = new Vector<ResourcePartInterface>();
 	private final Vector<ClientInterface> clientsBusyWithMe = new Vector<ClientInterface>();
 
 	//vedo se in downlodaing parts ci sono tutte le parti che compongono
@@ -105,7 +108,14 @@ class Downloader extends Thread implements DownloaderInterface {
 							//aggiungo alla lista delle parti da scaricare TUTTE le parti della risorsa da scaricare
 							downloadingParts.addAll(resToDownload.getParts());
 							//risveglio eventuali thread in attesa di ulteriori parti da scaricare
-							downloadingParts.notifyAll();	
+							downloadingParts.notifyAll();
+							
+							// elimino dall lista download le risorse di cui ho ottenuto TUTTE le parti			
+							if (completeParts.containsAll(resToDownload.getParts())) {
+								downloadingResources.remove(resToDownload);
+								clientInterface.getResources().add(resToDownload);
+								clientInterface.getGuiClientFrame().setResourceList(clientInterface.getResources());
+							}
 						}
 						
 						Integer concurrencyLevel = clientInterface.getMinIndex(resToDownload); // prima del for per evitare eventuali chiamate multiple al metodo getMinIndex
@@ -198,14 +208,14 @@ class Downloader extends Thread implements DownloaderInterface {
 												selecetdOwner.download(); //NOTA: chiamata BLOCCANTE!!!!!!
 												clientsBusyWithMe.remove(selecetdOwner);
 												clientInterface.getGuiClientFrame().appendLogEntry(this.toString() + ":DOPO aver compleato il download da " + selecetdOwner.getClientName());
-												clientInterface.decrementCurrentDownloadsCounter();										
+												clientInterface.decrementCurrentDownloadsCounter();	
+												// aggiungo la parte scaricata a una lista di scaricati cosi posso controllare quando in questa lista ho una risorsa intera
+												completeParts.add(partToDownload);
+												downloadingParts.remove(partToDownload);
 												partToDownload.setDownloadingStatus(TransfertStatus.Completed);
 												clientInterface.getGuiClientFrame().appendLogEntry(this.toString() + ":prima di eliminare dalla lista download le risorse completamente scaricate");
 												// elimino dall lista download le risorse di cui ho ottenuto TUTTE le parti			
-//												
-											
-												
-												refreshDownloadingLists();
+//												refreshDownloadingLists();
 												clientInterface.getGuiClientFrame().appendLogEntry(this.toString() + ":dopo di eliminare dalla lista download le risorse completamente scaricate");
 
 												
