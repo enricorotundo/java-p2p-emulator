@@ -53,7 +53,6 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 						}
 						/*
 						 * risvegliata da clientConnect e clientDisconnect:
-						 * 
 						 */
 						clientsMonitor.wait();	
 					} catch (final InterruptedException e) {
@@ -102,14 +101,11 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 		
 		String ipAddress = "127.0.0.1"; //Local IP address 
 		System.setProperty("java.rmi.server.hostname",ipAddress);
-		
+
 		// update gui
-		synchronized (clientsMonitor) {
-			guiServerFrame.setConnectedClientsList(connectedClients);
-		}
-		synchronized (serversMonitor) {
-			guiServerFrame.setConnectedServersList(connectedServers);
-		}
+		guiServerFrame.setConnectedClientsList(connectedClients);
+		guiServerFrame.setConnectedServersList(connectedServers);
+		
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
@@ -137,6 +133,7 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 				// update gui
 				guiServerFrame.setConnectedClientsList(connectedClients);
 			}
+			// risveglia il thread clientChecker
 			clientsMonitor.notifyAll();
 		}
 		return functionResultInteger;
@@ -155,6 +152,7 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 				// update gui
 				guiServerFrame.setConnectedClientsList(connectedClients);
 			}
+			// risveglia il thread clientChecker
 			clientsMonitor.notifyAll();
 		}
 		return functionResultInteger;
@@ -188,8 +186,7 @@ public final class Server extends UnicastRemoteObject implements ServerInterface
 		final Vector<ClientInterface> searchedResourceOweners = new Vector<ClientInterface>();
 		synchronized (serversMonitor) {
 			for (final ServerInterface serverInterface : connectedServers) {
-				for (final ClientInterface cli : serverInterface.getClients()) { //
-					// sync client side
+				for (final ClientInterface cli : serverInterface.getClients()) {
 					guiServerFrame.appendLogEntry("Looking for " + paramResourceName + " in " + cli.getClientName() + "@" + serverInterface.getServerNameString());
 					for (final ResourceInterface resource : cli.getResources()) {
 						if (resource.resourceCompare(paramResourceName)) {

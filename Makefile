@@ -20,9 +20,9 @@ start:
 	xterm $(XTERM) -e "cd bin/ && java server.ServerStarter Razorback1; read" &
 	xterm $(XTERM) -e "cd bin/ && java server.ServerStarter Razorback2; read" &
 	sleep 4
-	# xterm $(XTERM) -e "cd bin/ && java client.ClientStarter C1 Razorback1 3 A 1 B 4 C 6; read"  &
-	xterm $(XTERM) -e "cd bin/ && java client.ClientStarter C2 Razorback2 3 A 1 D 2; read"  &
-	xterm $(XTERM) -e "cd bin/ && java client.ClientStarter C3 Razorback2 3 E 2 D 2; read"  &
+	# xterm $(XTERM) -e "cd bin/ && java client.ClientStarter C1 Razorback1 3 A 9 B 9 C 9; read"  &
+	xterm $(XTERM) -e "cd bin/ && java client.ClientStarter C2 Razorback2 3 A 9 D 9; read"  &
+	xterm $(XTERM) -e "cd bin/ && java client.ClientStarter C3 Razorback2 3 E 2 D 9; read"  &
 
 start-client:
 	xterm -e "java -cp bin/ client.Client C1 Razorback1 3 A 1 B 4 C 6" &
