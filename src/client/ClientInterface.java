@@ -35,7 +35,7 @@ public interface ClientInterface extends Remote {
 	 */
 	public Integer getMinIndex(final ResourceInterface paramResourceToDownload) throws RemoteException;
 	
-	public Vector<ClientInterface> getResourceOwners(final String paramSearchedResourceString) throws RemoteException;
+	public Vector<ClientInterface> getResourceOwners(final String paramSearchedResourceString, final String callerName) throws RemoteException;
 	
 	public Integer getMaxDownloadCapacity() throws RemoteException;
 

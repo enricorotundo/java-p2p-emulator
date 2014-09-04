@@ -104,7 +104,7 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 		// e' gia sincronizzata
 		vettIntegers.add(getPartiMancanti().size()); // numero di parti mancanti da scaricare
 		// getResourceOwners non usa risorse condivise, paramResourceToDownload e' final, getClientsBusyWithMe() e' sincronizzata
-		vettIntegers.add(getResourceOwners(paramResourceToDownload.toString()).size() - getClientsBusyWithMe().size()); // num client disponibili (che non ci stiano gia inviando parti)			
+		vettIntegers.add(getResourceOwners(paramResourceToDownload.toString(), this.getClientName()).size() - getClientsBusyWithMe().size()); // num client disponibili (che non ci stiano gia inviando parti)			
 		Integer result = Collections.min(vettIntegers);
 		long endTime = System.nanoTime();
 		long duration = (endTime - startTime);
@@ -216,8 +216,9 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 	}
 
 	@Override
-	public Vector<ClientInterface> getResourceOwners(final String paramSearchedResourceString) throws RemoteException {
+	public Vector<ClientInterface> getResourceOwners(final String paramSearchedResourceString, final String callerName) throws RemoteException {
 		ServerInterface remoteServerInterface = null;
+		guiClientFrame.appendLogEntry(callerName + ":prima di recuperare tutti i client che hanno " + paramSearchedResourceString);
 		final Vector<ClientInterface> owners = new Vector<ClientInterface>();
 		try {
 			remoteServerInterface = (ServerInterface) Naming.lookup(Server.URL_STRING + serverName);
@@ -227,6 +228,7 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 					owners.add(cli);
 				}				
 			}
+			guiClientFrame.appendLogEntry(callerName + ":ho recuperato tutti client che possiedono " + paramSearchedResourceString);
 		} catch (MalformedURLException | RemoteException | NotBoundException e) {
 			e.printStackTrace();
 		}
@@ -258,7 +260,7 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 										guiClientFrame.appendLogEntry("ok, i havent " + searchedResString + ", asking " + serverName + " for owners.");
 										Vector<ClientInterface> owners = null;
 										try {
-											owners = getResourceOwners(searchedResString);
+											owners = getResourceOwners(searchedResString, this.getName());
 										} catch (RemoteException e1) {
 											e1.printStackTrace();
 										}
