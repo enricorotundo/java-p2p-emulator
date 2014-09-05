@@ -10,14 +10,32 @@ import controller.server.ServerInterface;
 public class ConnectedServers {
 
 	private static final long serialVersionUID = 3312651043157668857L;
-	private Vector<ServerInterface> connectedServers;
 	private DefaultListModel modelConnectedServers;
+	private Vector<ServerInterface> connectedServers;
 	
 	// chiamato da view.ServerFrame.updateConnectedServers;
 	public DefaultListModel getConnectedServersModel() {
 		synchronized (connectedServers) {
-			// creare il model leggendo i server connessi
+			// TODO creare il model leggendo i server connessi
 			return modelConnectedServers;
+		}
+	}
+	
+	public Vector<ServerInterface> getConnectedServers() {
+		synchronized (connectedServers) {
+			return connectedServers;
+		}
+	}
+	
+	public void addServer(final ServerInterface serverToInsert) {
+		synchronized (connectedServers) {
+			connectedServers.add(serverToInsert);
+		}
+	}
+	
+	public void clearServers() {
+		synchronized (connectedServers) {
+			connectedServers.clear();
 		}
 	}
 }

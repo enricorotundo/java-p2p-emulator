@@ -17,8 +17,20 @@ public class ConnectedClients {
 	// chiamato da view.ServerFrame.updateConnectedClients;
 	public DefaultListModel getConnectedClientsModel() {
 		synchronized (connectedClients) {
-			// creare il model leggendo i client connessi
+			// TODO creare il model leggendo i client connessi
 			return modelConnectedClients;			
 		}
 	}
-}
+	
+	public Vector<ClientInterface> getConnectedClients() {
+		synchronized (connectedClients) {
+			return connectedClients;
+		}
+	}
+	
+	public void removeClient(final ClientInterface clientToRemove) {
+		synchronized (connectedClients) {
+			connectedClients.remove(clientToRemove);
+		}
+	}
+} 

@@ -1,8 +1,10 @@
 package controller.server;
 
 import java.net.MalformedURLException;
+import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
 
@@ -21,18 +23,17 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 	private final String serverNameString;
 	private final ServerFrame gui; // VIEW
 	
-	private final ServerChecker serversChecker = new ServerChecker();
-	private final ClientChecker clientsChecker = new ClientChecker();
-	private final Object clientsMonitor = new Object();
-	private final Object serversMonitor = new Object();
+	
 
 	/**** RISORSE CONDIVISE DA SINCRONIZZARE *****/
-	// MODEL
-	private final ConnectedClients connectedClients = new ConnectedClients();
-	// MODEL
-	private final ConnectedServers connectedServers = new ConnectedServers();
+	private final ConnectedClients connectedClients = new ConnectedClients(); // MODEL
+	private final ConnectedServers connectedServers = new ConnectedServers(); // MODEL
 	/*********************************************/
 	
+	private final Object clientsMonitor = new Object();
+	private final Object serversMonitor = new Object();
+	private final ClientChecker clientsChecker = new ClientChecker(clientsMonitor, connectedClients);
+	private final ServerChecker serversChecker = new ServerChecker(serversMonitor, connectedServers);
 
 	public Server(final String paramServerName) throws RemoteException {
 		super();
@@ -74,8 +75,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 
 	@Override
 	public void disconnect() throws NotBoundException, MalformedURLException, RemoteException {
-		// TODO Auto-generated method stub
-		
+		Naming.unbind(Server.URL_STRING + serverNameString);
 	}
 
 	@Override
