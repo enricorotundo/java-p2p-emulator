@@ -18,8 +18,9 @@ import javax.swing.text.MaskFormatter;
 
 import model.client.ClientResources;
 import controller.client.Client;
+import controller.client.ClientInterface;
 
-public class ClientFrame extends AbstractBasicFrame implements ActionListener, Observer {
+public class ClientFrame extends AbstractBasicFrame implements Observer {
 
 	private static final long serialVersionUID = 5543418955298322422L;
 	private JPanel searchFilePanel;
@@ -29,13 +30,15 @@ public class ClientFrame extends AbstractBasicFrame implements ActionListener, O
 	private JButton connectionButton;
 	private JButton fileSearchButton;
 	private ClientResources clientResources; // MODEL
+	private Client clientController; // CONTROLLER fa da action listener dei buttons
 
 	private JList resourcesList;
 	private JList downloadsList;
 
-	public ClientFrame(final String s, final ClientResources resources) {
+	public ClientFrame(final String s, final ClientResources resources, final Client clientController) {
 		super(s);
 		this.clientResources = resources; // assegno il MODEL
+		this.clientController = clientController; // qui va usato solo come action listener!
 		setSize(new Dimension(600, 500));
 
 		// setting top panel
@@ -44,9 +47,11 @@ public class ClientFrame extends AbstractBasicFrame implements ActionListener, O
 		connectionButton = new JButton("Connect");
 		connectionButton.setPreferredSize(new Dimension(150, 50));
 		connectionButton.setActionCommand("connection");
+		connectionButton.addActionListener(clientController);
 		connectionButton.setToolTipText("Connect/disconnect from the network.");
 		fileSearchButton = new JButton("Search");
 		fileSearchButton.setActionCommand("search");
+		fileSearchButton.addActionListener(clientController);
 		fileSearchButton.setToolTipText("Start searching the file in the network.");
 		final MaskFormatter formatter = new MaskFormatter();
 		try {
@@ -102,17 +107,6 @@ public class ClientFrame extends AbstractBasicFrame implements ActionListener, O
 		pack();
 		setVisible(true);
 	}
-	
-
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		if (e.getActionCommand().equals("search")) {
-			//cerca
-		}
-		if (e.getActionCommand().equals("connection".toString())) {
-			//connettiti
-		}		
-	}
 
 	private void updateDownloadList() {
 		// chiamare model.ClientResources.getDonwloadsModel();
@@ -129,5 +123,9 @@ public class ClientFrame extends AbstractBasicFrame implements ActionListener, O
 	public void update(Observable o, Object arg) {
 		updateDownloadList();
 		updateResourceList();
+	}
+	
+	public void setConnectionButtonText(final String textToShow) {
+		connectionButton.setText(textToShow);
 	}
 }

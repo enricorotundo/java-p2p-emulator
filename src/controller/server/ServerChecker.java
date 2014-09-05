@@ -1,12 +1,10 @@
-package controller.client;
+package controller.server;
 
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 
-import controller.server.Server;
-import controller.server.ServerInterface;
 import model.server.ConnectedServers;
 
 public class ServerChecker extends Thread {

@@ -15,10 +15,6 @@ public class ConnectedServers  extends Observable {
 	private static final long serialVersionUID = 3312651043157668857L;
 	private Vector<ServerInterface> connectedServers = new Vector<ServerInterface>();
 	
-	public ConnectedServers() {
-		
-	}
-	
 	// chiamato da view.ServerFrame.updateConnectedServers;
 	public DefaultListModel getConnectedServersModel() {
 		final DefaultListModel modelConnectedServers = new DefaultListModel();
@@ -41,7 +37,6 @@ public class ConnectedServers  extends Observable {
 	}
 	
 	public void addServer(final ServerInterface serverToInsert) {
-		System.out.println("model.ConnectedServer");
 		synchronized (connectedServers) {
 			connectedServers.add(serverToInsert);
 		}

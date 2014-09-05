@@ -17,17 +17,7 @@ public class ConnectedClients extends Observable {
 
 	private static final long serialVersionUID = 1147723973129182931L;
 	private Vector<ClientInterface> connectedClients = new Vector<ClientInterface>();
-	
-	public ConnectedClients() {
-		// STUB
-		try {
-			addClient(new Client("stub", "stub", 2, new ClientResources()));
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
+		
 	// chiamato da view.ServerFrame.updateConnectedClients;
 	public DefaultListModel getConnectedClientsModel() {
 		final DefaultListModel modelConnectedClients = new DefaultListModel();

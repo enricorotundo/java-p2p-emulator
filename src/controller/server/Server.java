@@ -11,9 +11,7 @@ import java.util.Vector;
 import model.server.ConnectedClients;
 import model.server.ConnectedServers;
 import view.ServerFrame;
-import controller.client.ClientChecker;
 import controller.client.ClientInterface;
-import controller.client.ServerChecker;
 
 public class Server extends UnicastRemoteObject implements ServerInterface {
 
@@ -65,15 +63,37 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 	}
 
 	@Override
-	public Integer clientConnect(ClientInterface paramClient) throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
+	public Integer clientConnect(ClientInterface clientToConnect) throws RemoteException {
+		System.out.println(clientToConnect.getClientName() + " try to connect");
+		Integer functionResultInteger = -1;
+		synchronized (clientsMonitor) {
+			// check if client is already connected
+			if (!connectedClients.getConnectedClients().contains(clientToConnect)) {
+				connectedClients.addClient(clientToConnect);
+				functionResultInteger = 1;
+			}
+			// risveglia il thread clientChecker
+			clientsMonitor.notifyAll();
+		}
+		System.out.println(functionResultInteger);
+		return functionResultInteger;
 	}
 
 	@Override
-	public Integer clientDisconnect(ClientInterface paramClient) throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
+	public Integer clientDisconnect(ClientInterface clientToDisconnect) throws RemoteException {
+		System.out.println(clientToDisconnect.getClientName() + " try to disconnect");
+		Integer functionResultInteger = -1;
+		synchronized (clientsMonitor) {
+			// check if client is connected
+			if (connectedClients.getConnectedClients().contains(clientToDisconnect)) {
+				connectedClients.removeClient(clientToDisconnect);
+				functionResultInteger = 0;
+			}
+			// risveglia il thread clientChecker
+			clientsMonitor.notifyAll();
+		}
+		System.out.println(functionResultInteger);
+		return functionResultInteger;
 	}
 
 	@Override

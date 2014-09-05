@@ -1,10 +1,11 @@
 /**
  * 
  */
-package controller.client;
+package controller.server;
 
 import java.rmi.RemoteException;
 
+import controller.client.ClientInterface;
 import model.server.ConnectedClients;
 
 public class ClientChecker extends Thread {
