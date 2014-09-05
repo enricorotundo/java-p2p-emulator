@@ -30,7 +30,7 @@ public class ServerChecker extends Thread {
 				 * si chiude inaspettatamente non c'e' modo di comunicare a tutti
 				 * gli atri server l'accaduto
 				 */
-				sleep(200);
+				sleep(500);
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();
 			}

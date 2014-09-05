@@ -46,6 +46,7 @@ public class ClientResources extends Observable {
 			resources.add(insertResource);
 		}
 		// notifico alla VIEW le modifiche
+		setChanged();  
 		notifyObservers();
 	}
 	
@@ -55,6 +56,7 @@ public class ClientResources extends Observable {
 			downloads.add(insertResource);
 		}
 		// notifico alla VIEW le modifiche
+		setChanged();  
 		notifyObservers();
 	}
 

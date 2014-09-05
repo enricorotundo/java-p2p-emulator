@@ -2,29 +2,50 @@ package view;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.swing.BorderFactory;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-public class ServerFrame extends AbstractBasicFrame {
+import model.server.ConnectedClients;
+import model.server.ConnectedServers;
+
+public class ServerFrame extends AbstractBasicFrame implements Observer {
 
 	private static final long serialVersionUID = -7319784823079373838L;
 	private final JPanel connectedClientsPanel = new JPanel();
 	private final JPanel connectedServersPanel = new JPanel();
-	private final JList<String> connectedClientsList = new JList<String>();
-	private final JList<String> connectedServersList = new JList<String>();
-	private final JScrollPane areaScrollPaneClients = new JScrollPane(connectedClientsList);
-	private final JScrollPane areaScrollPaneServers = new JScrollPane(connectedServersList);
+	private final JList<String> connectedClientsList;
+	private final JList<String> connectedServersList;
+	private final JScrollPane areaScrollPaneClients;
+	private final JScrollPane areaScrollPaneServers;
 
 	
-	public ServerFrame(final String paramServerName) {
+	private ConnectedClients connectedClients; // MODEL
+	private ConnectedServers connectedServers; // MODEL
+	
+	public ServerFrame(final String paramServerName, final ConnectedClients connectedClients, final ConnectedServers connectedServers) {
 		super(paramServerName);
+		this.connectedClients = connectedClients; // assegno il MODEL
+		this.connectedServers = connectedServers; // assegno il MODEL
+		
 		appendLogEntry("Buliding server " + paramServerName);
 
 		topPanel = new JPanel();
 		topPanel.setOpaque(true);
+		
+		// init JLists
+		connectedClientsList = new JList<String>();
+		updateConnectedClients();
+		connectedServersList = new JList<String>();
+		updateConnectedServers();
+
+		// init Panes
+		areaScrollPaneClients = new JScrollPane(connectedClientsList);
+		areaScrollPaneServers = new JScrollPane(connectedServersList);
 
 		// setting clients panel
 		connectedClientsPanel.setBorder(BorderFactory.createTitledBorder("Connected clients"));
@@ -45,6 +66,7 @@ public class ServerFrame extends AbstractBasicFrame {
 		topPanel.add(connectedClientsPanel, BorderLayout.LINE_START);
 		topPanel.add(connectedServersPanel, BorderLayout.LINE_END);
 		mainPanel.add(topPanel, BorderLayout.PAGE_START);
+		
 
 		setContentPane(mainPanel);
 		pack();
@@ -52,12 +74,21 @@ public class ServerFrame extends AbstractBasicFrame {
 	}
 	
 	// chiamato da model.server.ConnectedClients  al quale chiede i dati da visualizzare
-	public void updateConnectedClients() {	
-//		TODO
+	public final void updateConnectedClients() {	
+		// chiamare model.ConnectedClients.getConnectedClientsModel();
+		connectedClientsList.setModel(connectedClients.getConnectedClientsModel());
 	}
 	
 	// chiamato da model.server.ConnectedServers al quale chiede i dati da visualizzare
-	public void updateConnectedServers() {
-//		TODO
+	public final void updateConnectedServers() {
+		// chiamare model.ConnectedServers.getConnectedServersModel();
+		connectedServersList.setModel(connectedServers.getConnectedServersModel());
+	}
+
+	// invocato quando il MODEL viene modificato -> aggiorna la VIEW
+	@Override
+	public void update(Observable o, Object arg) {
+		updateConnectedClients();
+		updateConnectedServers();
 	}
 }

@@ -22,8 +22,6 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 	public static final String URL_STRING = "rmi://" + HOST + "/Server/";
 	private final String serverNameString;
 	private final ServerFrame gui; // VIEW
-	
-	
 
 	/**** RISORSE CONDIVISE DA SINCRONIZZARE *****/
 	private final ConnectedClients connectedClients = new ConnectedClients(); // MODEL
@@ -32,14 +30,17 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 	
 	private final Object clientsMonitor = new Object();
 	private final Object serversMonitor = new Object();
-	private final ClientChecker clientsChecker = new ClientChecker(clientsMonitor, connectedClients);
-	private final ServerChecker serversChecker = new ServerChecker(serversMonitor, connectedServers);
+	private final ClientChecker clientsChecker;
+	private final ServerChecker serversChecker;
 
 	public Server(final String paramServerName) throws RemoteException {
 		super();
 		serverNameString = paramServerName;
 		// creo gui
-		gui = new ServerFrame(paramServerName);
+		gui = new ServerFrame(paramServerName, connectedClients, connectedServers);
+		// dico al MODEL chi e' il suo Observer
+		this.connectedClients.addObserver(gui);
+		this.connectedServers.addObserver(gui);
 		// set the java.rmi.server.hostname property to tell the RMI Registry which hostname or IP Adress to return in its RMI URLs: http://stackoverflow.com/questions/11343132/rmi-responding-very-slow
 		String ipAddress = "127.0.0.1"; //Local IP address 
 		System.setProperty("java.rmi.server.hostname",ipAddress);
@@ -57,8 +58,10 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 		});
 		
 		// faccio partire i controllori dei client e server connessi
-		serversChecker.start();
+		clientsChecker = new ClientChecker(clientsMonitor, connectedClients);
+		serversChecker = new ServerChecker(serversMonitor, connectedServers);
 		clientsChecker.start();
+		serversChecker.start();
 	}
 
 	@Override

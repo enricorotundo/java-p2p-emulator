@@ -35,7 +35,7 @@ public class ClientFrame extends AbstractBasicFrame implements ActionListener, O
 
 	public ClientFrame(final String s, final ClientResources resources) {
 		super(s);
-		this.clientResources = resources;
+		this.clientResources = resources; // assegno il MODEL
 		setSize(new Dimension(600, 500));
 
 		// setting top panel
@@ -103,15 +103,6 @@ public class ClientFrame extends AbstractBasicFrame implements ActionListener, O
 		setVisible(true);
 	}
 	
-	private void updateDownloadList() {
-		// chiamare model.ClientResources.getDonwloadsModel();
-		downloadsList.setModel(clientResources.getModelDownloads());
-	}
-	
-	private void updateResourceList() {
-		// chiamare model.ClientResources.getResourcesModel();
-		resourcesList.setModel(clientResources.getModelResources());
-	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
@@ -123,6 +114,16 @@ public class ClientFrame extends AbstractBasicFrame implements ActionListener, O
 		}		
 	}
 
+	private void updateDownloadList() {
+		// chiamare model.ClientResources.getDonwloadsModel();
+		downloadsList.setModel(clientResources.getModelDownloads());
+	}
+	
+	private void updateResourceList() {
+		// chiamare model.ClientResources.getResourcesModel();
+		resourcesList.setModel(clientResources.getModelResources());
+	}
+	
 	// invocato quando il MODEL viene modificato -> aggiorna la VIEW
 	@Override
 	public void update(Observable o, Object arg) {

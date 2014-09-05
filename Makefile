@@ -3,13 +3,13 @@ XTERM = -geometry 120x20
 default: progetto
 
 all:
-	make clean
+	make clean 
 	make progetto
 	make stop
 	make start
 
 progetto:
-	javac ./src/client/Client.java ./src/client/ClientInterface.java ./src/gui/AbstractBasicFrame.java ./src/gui/ClientFrame.java ./src/gui/ServerFrame.java ./src/resource/part/ResourcePart.java ./src/resource/part/ResourcePartInterface.java ./src/resource/part/TransfertStatus.java ./src/resource/Resource.java ./src/resource/ResourceInterface.java ./src/server/Server.java ./src/server/ServerInterface.java ./src/server/ServerStarter.java ./src/client/ClientStarter.java ./src/client/UploaderInterface.java ./src/client/DownloaderInterface.java ./src/client/Downloader.java -d ./bin
+	javac -Xlint:unchecked ./src/controller/client/Client.java ./src/controller/client/ClientChecker.java ./src/controller/client/ClientInterface.java ./src/controller/client/ServerChecker.java ./src/controller/server/Server.java ./src/controller/server/ServerInterface.java ./src/model/client/ClientResources.java ./src/model/server/ConnectedClients.java ./src/model/server/ConnectedServers.java ./src/model/share/Resource.java ./src/starter/ClientStarter.java ./src/starter/ServerStarter.java ./src/view/AbstractBasicFrame.java ./src/view/ClientFrame.java ./src/view/ServerFrame.java -d ./bin
 
 clean: 
 	find . -name "*.class" -type f -delete
@@ -17,15 +17,15 @@ clean:
 start:
 	cd bin/ && rmiregistry &
 	sleep 2
-	xterm $(XTERM) -e "cd bin/ && java server.ServerStarter Razorback1; read" &
-	xterm $(XTERM) -e "cd bin/ && java server.ServerStarter Razorback2; read" &
+	xterm $(XTERM) -e "cd bin/ && java starter.ServerStarter Razorback1; read" &
+	xterm $(XTERM) -e "cd bin/ && java starter.ServerStarter Razorback2; read" &
 	sleep 4
-	# xterm $(XTERM) -e "cd bin/ && java client.ClientStarter C1 Razorback1 3 A 9 B 9 C 9; read"  &
-	xterm $(XTERM) -e "cd bin/ && java client.ClientStarter C2 Razorback2 3 A 9 D 9; read"  &
-	xterm $(XTERM) -e "cd bin/ && java client.ClientStarter C3 Razorback2 3 E 2 D 9; read"  &
+	#xterm $(XTERM) -e "cd bin/ && java starter.ClientStarter C1 Razorback1 3 A 9 B 9 C 9; read"  &
+	#xterm $(XTERM) -e "cd bin/ && java starter.ClientStarter C2 Razorback2 3 A 9 D 9; read"  &
+	#xterm $(XTERM) -e "cd bin/ && java starter.ClientStarter C3 Razorback2 3 E 2 D 9; read"  &
 
 start-client:
-	xterm -e "java -cp bin/ client.Client C1 Razorback1 3 A 1 B 4 C 6" &
+	xterm -e "java -cp bin/ starter.ClientStarter C1 Razorback1 3 A 1 B 4 C 6" &
 
 stop:
 	killall rmiregistry &

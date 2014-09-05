@@ -1,25 +1,46 @@
 package model.server;
 
+import java.rmi.RemoteException;
+import java.util.Observable;
 import java.util.Vector;
 
 import javax.swing.DefaultListModel;
 
+import model.client.ClientResources;
+import model.share.Resource;
+import controller.client.Client;
 import controller.client.ClientInterface;
 import controller.server.ServerInterface;
 
 
-public class ConnectedClients {
+public class ConnectedClients extends Observable {
 
 	private static final long serialVersionUID = 1147723973129182931L;
-	private Vector<ClientInterface> connectedClients;
-	private DefaultListModel modelConnectedClients;
+	private Vector<ClientInterface> connectedClients = new Vector<ClientInterface>();
+	
+	public ConnectedClients() {
+		// STUB
+		try {
+			addClient(new Client("stub", "stub", 2, new ClientResources()));
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	
 	// chiamato da view.ServerFrame.updateConnectedClients;
 	public DefaultListModel getConnectedClientsModel() {
+		final DefaultListModel modelConnectedClients = new DefaultListModel();
 		synchronized (connectedClients) {
-			// TODO creare il model leggendo i client connessi
-			return modelConnectedClients;			
+			try {
+				for (ClientInterface oneConnectedClient : connectedClients) {
+						modelConnectedClients.addElement(oneConnectedClient.getClientName());
+				}			
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
 		}
+		return modelConnectedClients;			
 	}
 	
 	public Vector<ClientInterface> getConnectedClients() {
@@ -32,5 +53,17 @@ public class ConnectedClients {
 		synchronized (connectedClients) {
 			connectedClients.remove(clientToRemove);
 		}
+		// notifico alla VIEW view.ServerFrame le modifiche
+		setChanged();  
+		notifyObservers();
+	}
+	
+	public void addClient(ClientInterface clientToInsert) {
+		synchronized (connectedClients) {
+			connectedClients.add(clientToInsert);
+		}
+		// notifico alla VIEW view.ServerFrame le modifiche
+		setChanged();  
+		notifyObservers();
 	}
 } 
