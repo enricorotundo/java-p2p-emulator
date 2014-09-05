@@ -23,8 +23,8 @@ public class ClientFrame extends AbstractBasicFrame {
 	private JButton fileSearchButton;
 	
 	
-	private JList<ResourceInterface> completeResourcesList;
-	private JList<ResourcePartInterface> downloadQueueList;
+	private JList resourcesList;
+	private JList downloadsList;
 
 	
 	
@@ -71,9 +71,9 @@ public class ClientFrame extends AbstractBasicFrame {
 		resourcesPanel.setOpaque(true);
 		resourcesPanel.setBorder(BorderFactory.createTitledBorder("Entire Resources"));
 		resourcesPanel.setLayout(new BorderLayout());
-		completeResourcesList = new JList<ResourceInterface>();
-		completeResourcesList.setPreferredSize(new Dimension(getWidth() / 2 - 80, 270));
-		final JScrollPane areaScrollPane = new JScrollPane(completeResourcesList);
+		resourcesList = new JList();
+		resourcesList.setPreferredSize(new Dimension(getWidth() / 2 - 80, 270));
+		final JScrollPane areaScrollPane = new JScrollPane(resourcesList);
 		areaScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		areaScrollPane.setPreferredSize(new Dimension(280, 250));
 		areaScrollPane.setVisible(true);
