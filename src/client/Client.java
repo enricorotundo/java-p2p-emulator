@@ -320,13 +320,14 @@ public final class Client extends UnicastRemoteObject implements ClientInterface
 	}
 	
 	@Override
-	public void download() throws RemoteException {
+	public long download() throws RemoteException {
 		try {
 			guiClientFrame.appendLogEntry("One client is downloading...");
 			Thread.sleep(Client.DOWNLOAD_TIME);
 		} catch (final InterruptedException e) {
 			e.printStackTrace();
 		}
+		return Client.DOWNLOAD_TIME;
 	}
 	
 	@Override

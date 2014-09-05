@@ -10,7 +10,7 @@ import resource.ResourceInterface;
 
 public interface ClientInterface extends Remote {
 
-	public void download() throws RemoteException;
+	public long download() throws RemoteException;
 
 	/**
 	 * @return the client name identifier
