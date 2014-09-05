@@ -1,9 +1,14 @@
 package controller.client;
 
 import java.rmi.RemoteException;
+
+import view.ClientFrame;
+
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import model.client.ClientResources;
 import model.share.Resource;
 
 public class Client extends UnicastRemoteObject  implements ClientInterface  {
@@ -17,12 +22,15 @@ public class Client extends UnicastRemoteObject  implements ClientInterface  {
 	private final String serverName;
 	private AtomicInteger currentDownloads = new AtomicInteger(0);
 	private final Integer maxDownloadCapacity;
+	private final ClientResources resources; // MODEL
+	private final ClientFrame gui; // VIEW
 	
-	public Client(final String clientName, String serverName, int maxDownloadCapacity, Vector<Resource> resources) throws RemoteException {
+	public Client(final String clientName, String serverName, int maxDownloadCapacity, final ClientResources argResources) throws RemoteException {
 		this.clientName = clientName;
 		this.serverName = serverName;
 		this.maxDownloadCapacity = maxDownloadCapacity;
-		
+		this.resources = argResources;
+		gui = new ClientFrame(clientName + "@" + serverName, resources);
 	}
 
 	@Override
