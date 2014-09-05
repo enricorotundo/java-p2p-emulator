@@ -31,6 +31,8 @@ public class Client extends UnicastRemoteObject  implements ClientInterface  {
 		this.maxDownloadCapacity = maxDownloadCapacity;
 		this.resources = argResources;
 		gui = new ClientFrame(clientName + "@" + serverName, resources);
+		// dico al MODEL chi e' il suo Observer
+		this.resources.addObserver(gui);
 	}
 
 	@Override

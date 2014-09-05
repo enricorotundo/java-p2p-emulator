@@ -86,14 +86,12 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 
 	@Override
 	public String getServerNameString() throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
+		return serverNameString;
 	}
 
 	@Override
 	public String getServerUrl() throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
+		return Server.URL_STRING + serverNameString;
 	}
 
 	@Override

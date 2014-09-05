@@ -5,6 +5,8 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.ParseException;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -17,7 +19,7 @@ import javax.swing.text.MaskFormatter;
 import model.client.ClientResources;
 import controller.client.Client;
 
-public class ClientFrame extends AbstractBasicFrame implements ActionListener {
+public class ClientFrame extends AbstractBasicFrame implements ActionListener, Observer {
 
 	private static final long serialVersionUID = 5543418955298322422L;
 	private JPanel searchFilePanel;
@@ -26,14 +28,14 @@ public class ClientFrame extends AbstractBasicFrame implements ActionListener {
 	private JFormattedTextField fileSearchTextField;
 	private JButton connectionButton;
 	private JButton fileSearchButton;
-	private ClientResources resources; // MODEL
+	private ClientResources clientResources; // MODEL
 
 	private JList resourcesList;
 	private JList downloadsList;
 
 	public ClientFrame(final String s, final ClientResources resources) {
 		super(s);
-		this.resources = resources;
+		this.clientResources = resources;
 		setSize(new Dimension(600, 500));
 
 		// setting top panel
@@ -72,6 +74,7 @@ public class ClientFrame extends AbstractBasicFrame implements ActionListener {
 		resourcesPanel.setBorder(BorderFactory.createTitledBorder("Entire Resources"));
 		resourcesPanel.setLayout(new BorderLayout());
 		resourcesList = new JList();
+		updateResourceList();
 		resourcesList.setPreferredSize(new Dimension(getWidth() / 2 - 80, 270));
 		final JScrollPane areaScrollPane = new JScrollPane(resourcesList);
 		areaScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -86,6 +89,7 @@ public class ClientFrame extends AbstractBasicFrame implements ActionListener {
 		downloadQueuePanel.setBorder(BorderFactory.createTitledBorder("Download queue"));
 		downloadQueuePanel.setLayout(new BorderLayout());
 		downloadsList = new JList();
+		updateDownloadList();
 		downloadsList.setPreferredSize(new Dimension(getWidth() / 2 - 80, 270));
 		final JScrollPane areaScrollPane1 = new JScrollPane(downloadsList);
 		areaScrollPane1.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -99,12 +103,14 @@ public class ClientFrame extends AbstractBasicFrame implements ActionListener {
 		setVisible(true);
 	}
 	
-	public void updateDownloadList() {
+	private void updateDownloadList() {
 		// chiamare model.ClientResources.getDonwloadsModel();
+		downloadsList.setModel(clientResources.getModelDownloads());
 	}
 	
-	public void updateResourceList() {
+	private void updateResourceList() {
 		// chiamare model.ClientResources.getResourcesModel();
+		resourcesList.setModel(clientResources.getModelResources());
 	}
 
 	@Override
@@ -114,8 +120,13 @@ public class ClientFrame extends AbstractBasicFrame implements ActionListener {
 		}
 		if (e.getActionCommand().equals("connection".toString())) {
 			//connettiti
-		}
-		
-		// notify dal MODEL?
+		}		
+	}
+
+	// invocato quando il MODEL viene modificato -> aggiorna la VIEW
+	@Override
+	public void update(Observable o, Object arg) {
+		updateDownloadList();
+		updateResourceList();
 	}
 }
