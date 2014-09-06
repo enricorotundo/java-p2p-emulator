@@ -8,6 +8,8 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
 
+import javax.swing.SwingUtilities;
+
 import model.server.ConnectedClients;
 import model.server.ConnectedServers;
 import view.ServerFrame;
@@ -39,6 +41,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 		// dico al MODEL chi e' il suo Observer
 		this.connectedClients.addObserver(gui);
 		this.connectedServers.addObserver(gui);
+		
 		// set the java.rmi.server.hostname property to tell the RMI Registry which hostname or IP Adress to return in its RMI URLs: http://stackoverflow.com/questions/11343132/rmi-responding-very-slow
 		String ipAddress = "127.0.0.1"; //Local IP address 
 		System.setProperty("java.rmi.server.hostname",ipAddress);
@@ -60,6 +63,13 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 		serversChecker = new ServerChecker(serversMonitor, connectedServers);
 		clientsChecker.start();
 		serversChecker.start();
+		
+		// mostra gui
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+		        gui.setVisible(true);
+		    }
+		});
 	}
 
 	@Override

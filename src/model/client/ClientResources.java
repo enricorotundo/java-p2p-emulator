@@ -35,9 +35,9 @@ public class ClientResources extends Observable {
 	
 	// chiamato da starter.ClientStarter prima di creare il controller.client.Client
 	// chiamato da ...
-	public void addAvailableResource(final Resource insertResource) {
+	public void addAvailableResource(final String insertResourceName) {
 		synchronized (resources) {
-			resources.add(insertResource);
+			resources.add(new Resource(insertResourceName.substring(0,0), Integer.parseInt(insertResourceName.substring(2,2))));
 		}
 		// notifico alla VIEW le modifiche
 		setChanged();  
@@ -45,9 +45,9 @@ public class ClientResources extends Observable {
 	}
 	
 	// chiamato da ...
-	public void addDownloadingResource(final Resource insertResource) {
+	public void addDownloadingResource(final String insertResourceName) {
 		synchronized (downloads) {
-			downloads.add(insertResource);
+			downloads.add(new Resource(insertResourceName.substring(0,0), Integer.parseInt(insertResourceName.substring(2,2))));
 		}
 		// notifico alla VIEW le modifiche
 		setChanged();  
@@ -69,6 +69,12 @@ public class ClientResources extends Observable {
 	public Vector<Resource> getResources() {
 		synchronized (resources) {
 			return resources;
+		}
+	}
+	
+	public Vector<Resource> getDownloadningResources() {
+		synchronized (downloads) {
+			return downloads;
 		}
 	}
 

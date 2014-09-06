@@ -12,4 +12,6 @@ public interface ClientInterface extends Remote {
 	public Boolean test() throws RemoteException;
 	public Vector<String[]> getResourceList() throws RemoteException;
 	public Boolean checkResourcePossession(final String resourceToSearchFor, final String caller) throws RemoteException;
+	
+	public Integer getmMaxDownloadCapacity();
 }

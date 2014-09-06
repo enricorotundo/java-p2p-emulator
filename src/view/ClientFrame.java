@@ -40,7 +40,7 @@ public class ClientFrame extends AbstractBasicFrame implements Observer {
 		this.clientResources = resources; // assegno il MODEL
 		this.clientController = clientController; // qui va usato solo come action listener!
 		setSize(new Dimension(600, 500));
-
+		
 		// setting top panel
 		topPanel = new JPanel();
 		topPanel.setOpaque(true);
@@ -105,7 +105,6 @@ public class ClientFrame extends AbstractBasicFrame implements Observer {
 
 		setContentPane(mainPanel);
 		pack();
-		setVisible(true);
 	}
 
 	private void updateDownloadList() {

@@ -14,8 +14,10 @@ public class ClientStarter {
 			try {
 				// creo l'oggetto di tipo ClientResources da passare al client come model
 				final ClientResources argResources = new ClientResources(); // MODEL
+				String resNameString="";
 				for (int i = 3; i < args.length; i += 2)
-					argResources.addAvailableResource(new Resource(args[i].toString(), Integer.parseInt(args[i + 1])));
+					resNameString.concat(args[i]);
+				argResources.addAvailableResource(resNameString);
 				// creo il controller.client.Client
 				final Client clientController = new Client(args[0], args[1], Integer.parseInt(args[2]), argResources);
 			} catch (final Exception e) {

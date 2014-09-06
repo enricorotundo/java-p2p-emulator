@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import controller.server.Server;
 import controller.server.ServerInterface;
@@ -32,7 +33,7 @@ public class Client extends UnicastRemoteObject  implements ClientInterface, Act
 	private final String clientName;
 	private final String serverName;
 	private AtomicBoolean connectionStatusUp = new AtomicBoolean(false); //false=down, true=up
-	private AtomicInteger currentDownloads = new AtomicInteger(0);
+	private AtomicInteger currentDownloadsNumber = new AtomicInteger(0);
 	private final Integer maxDownloadCapacity;
 	private final ClientResources resourceModel; // MODEL
 	private final ClientFrame gui; // VIEW
@@ -44,6 +45,7 @@ public class Client extends UnicastRemoteObject  implements ClientInterface, Act
 		this.maxDownloadCapacity = maxDownloadCapacity;
 		this.resourceModel = argResources;
 		gui = new ClientFrame(clientName + "@" + serverName, resourceModel, this);
+	
 		// dico al MODEL chi e' il suo Observer
 		this.resourceModel.addObserver(gui);
 		// mi connetto subito al server 
@@ -70,11 +72,19 @@ public class Client extends UnicastRemoteObject  implements ClientInterface, Act
 				}
 			}
 		});
+		
+		// mostra gui
+		SwingUtilities.invokeLater(new Runnable() {
+		    public void run() {
+		        gui.setVisible(true);
+		    }
+		});
 	}
 
 	@Override
-	public Boolean download(String callerName) throws RemoteException {
+	public Boolean download(final String callerName) throws RemoteException {
 		try {
+			gui.appendLogEntry(callerName + " is downloading from me.");
 			Thread.sleep(Client.UPLOAD_TIME);
 			return true;
 		} catch (InterruptedException e) {
@@ -93,6 +103,9 @@ public class Client extends UnicastRemoteObject  implements ClientInterface, Act
 		return serverName;
 	}
 
+	/**
+	 * Usato da controller.ClientChecker o altri per testare se il Client e' ancora up
+	 */
 	@Override
 	public Boolean test() throws RemoteException {
 		return true;
@@ -185,7 +198,6 @@ public class Client extends UnicastRemoteObject  implements ClientInterface, Act
 	}
 	
 	private final void performSearch(final String searchedResourceName) {
-
 		new Thread() {
 			@Override
 			public void run() {
@@ -200,30 +212,43 @@ public class Client extends UnicastRemoteObject  implements ClientInterface, Act
 									// client is connected and check if it already has the searched resource
 									// if this client DOESNT own searched resource
 									try {
-										if (!checkResourcePossession(searchedResourceName, clientName)) {
-											gui.appendLogEntry("I havent " + searchedResourceName + ", asking " + serverName + " for owners.");
-											Vector<ClientInterface> owners = null;
-											owners = getResourceOwners(searchedResourceName);
-											// if there are at least one resource owner
-											if (!owners.isEmpty()) {
-												gui.appendLogEntry("There are " + owners.size() + " owners of " + searchedResourceName);
-
-												// TODO: qui ho i possessori della risorsa da scaricare!!!!!!!!!!!!!!!!!!!!
-												// stub
-												for (ClientInterface clientInterface : owners) {
-													try {
-														gui.appendLogEntry(clientInterface.getClientName() + " owns" + searchedResourceName);
-													} catch (RemoteException e) {
-														// TODO Auto-generated catch block
-														e.printStackTrace();
+										if (currentDownloadsNumber.get() > 0) {
+											if (!checkResourcePossession(searchedResourceName, clientName)) {
+												gui.appendLogEntry("I havent " + searchedResourceName + ", asking " + serverName + " for owners.");
+												Vector<ClientInterface> owners = null;
+												owners = getResourceOwners(searchedResourceName);
+												// if there are at least one resource owner
+												if (!owners.isEmpty()) {
+													gui.appendLogEntry("There are " + owners.size() + " owners of " + searchedResourceName);
+													
+													// TODO: qui ho i possessori della risorsa da scaricare!!!!!!!!!!!!!!!!!!!!
+													
+													// stampo i possessori della risorsa
+													for (ClientInterface clientInterface : owners) {
+														try {
+															gui.appendLogEntry(clientInterface.getClientName() + " owns" + searchedResourceName);
+														} catch (RemoteException e) {
+															e.printStackTrace();
+														}
 													}
+													
+													// aggiungo la risorsa al MODEL
+													resourceModel.addDownloadingResource(searchedResourceName);
+													
+													// risveglio il thread DownloadScheduler in wait sul MODEL
+													resourceModel.notifyAll();
+													
+													// avvio Thread per il download
+													new DownloadScheduler(resourceModel, owners, new String[]{searchedResourceName.substring(0,0), searchedResourceName.substring(2,2)}, maxDownloadCapacity, currentDownloadsNumber).start();
+													
+												} else {
+													JOptionPane.showMessageDialog(gui, "Resource " + searchedResourceName + " not found in the network, please try searching another resource", "Please try searching another resource.", JOptionPane.INFORMATION_MESSAGE);
 												}
-												
 											} else {
-												JOptionPane.showMessageDialog(gui, "Resource " + searchedResourceName + " not found in the network, please try searching another resource", "Please try searching another resource.", JOptionPane.INFORMATION_MESSAGE);
+												JOptionPane.showMessageDialog(gui, "You cannon't download a owned resource, please try searching another one.", "You already own searched resource.", JOptionPane.INFORMATION_MESSAGE);
 											}
 										} else {
-											JOptionPane.showMessageDialog(gui, "You cannon't download a owned resource, please try searching another one.", "You already own searched resource.", JOptionPane.INFORMATION_MESSAGE);
+											JOptionPane.showMessageDialog(gui, "Only one resource download at one is permitted! Please wait.", "Please wait.", JOptionPane.INFORMATION_MESSAGE);
 										}
 									} catch (HeadlessException | RemoteException e) {
 										e.printStackTrace();
@@ -248,6 +273,11 @@ public class Client extends UnicastRemoteObject  implements ClientInterface, Act
 			}
 		}
 		
+	}
+	
+	@Override
+	public Integer getmMaxDownloadCapacity() {
+		return maxDownloadCapacity;
 	}
 	
 }
