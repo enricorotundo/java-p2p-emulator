@@ -23,7 +23,7 @@ import controller.server.ServerInterface;
 import model.client.ClientResources;
 import model.share.Resource;
 
-public class Client extends UnicastRemoteObject  implements ClientInterface, ActionListener  {
+public class Client extends UnicastRemoteObject implements ClientInterface, ActionListener  {
 	
 	/**************** TEMPO DI DONWLOAD COSTANTE (PER PARTE) **************/
 	public static final long UPLOAD_TIME = 4000;
@@ -121,7 +121,7 @@ public class Client extends UnicastRemoteObject  implements ClientInterface, Act
 		return resourceList;
 	}
 	
-	private final void connectToServer() {
+	private final void connectToServer() throws RemoteException {
 		final ClientInterface thisClientInterface = this;
 		new Thread() {
 			@Override
@@ -175,7 +175,7 @@ public class Client extends UnicastRemoteObject  implements ClientInterface, Act
 		return result;
 	}
 	
-	private Vector<ClientInterface> getResourceOwners(final String paramSearchedResourceString) {
+	private Vector<ClientInterface> getResourceOwners(final String paramSearchedResourceString) throws RemoteException {
 		ServerInterface remoteServerInterface = null;
 		Vector<ClientInterface> owners = null;
 		
@@ -197,7 +197,7 @@ public class Client extends UnicastRemoteObject  implements ClientInterface, Act
 		return owners;
 	}
 	
-	private final void performSearch(final String searchedResourceName) {
+	private final void performSearch(final String searchedResourceName) throws RemoteException  {
 		new Thread() {
 			@Override
 			public void run() {
@@ -212,7 +212,7 @@ public class Client extends UnicastRemoteObject  implements ClientInterface, Act
 									// client is connected and check if it already has the searched resource
 									// if this client DOESNT own searched resource
 									try {
-										if (currentDownloadsNumber.get() > 0) {
+										if (currentDownloadsNumber.get() <= 0) {
 											if (!checkResourcePossession(searchedResourceName, clientName)) {
 												gui.appendLogEntry("I havent " + searchedResourceName + ", asking " + serverName + " for owners.");
 												Vector<ClientInterface> owners = null;
@@ -224,7 +224,7 @@ public class Client extends UnicastRemoteObject  implements ClientInterface, Act
 													// stampo i possessori della risorsa
 													for (ClientInterface clientInterface : owners) {
 														try {
-															gui.appendLogEntry(clientInterface.getClientName() + " owns" + searchedResourceName);
+															gui.appendLogEntry(clientInterface.getClientName() + " owns " + searchedResourceName);
 														} catch (RemoteException e) {
 															e.printStackTrace();
 														}
@@ -234,10 +234,12 @@ public class Client extends UnicastRemoteObject  implements ClientInterface, Act
 													resourceModel.addDownloadingResource(searchedResourceName);
 													
 													// risveglio il thread DownloadScheduler in wait sul MODEL
-													resourceModel.notifyAll();
+													synchronized (resourceModel) {														
+														resourceModel.notifyAll();
+													}
 													
 													// avvio Thread per il download
-													new DownloadScheduler(resourceModel, owners, new String[]{searchedResourceName.substring(0,0), searchedResourceName.substring(2,2)}, maxDownloadCapacity, currentDownloadsNumber).start();
+													new DownloadScheduler(resourceModel, owners, new String[]{searchedResourceName.substring(0,1), searchedResourceName.substring(2,3)}, maxDownloadCapacity, currentDownloadsNumber).start();
 													
 												} else {
 													JOptionPane.showMessageDialog(gui, "Resource " + searchedResourceName + " not found in the network, please try searching another resource", "Please try searching another resource.", JOptionPane.INFORMATION_MESSAGE);
@@ -263,18 +265,23 @@ public class Client extends UnicastRemoteObject  implements ClientInterface, Act
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if ("search".equals(e.getActionCommand())) {
-			 performSearch(gui.getSearchedText());
-		} else {
-			if ("connection".equals(e.getActionCommand())) {
-				connectToServer();
+		try {
+			if ("search".equals(e.getActionCommand())) {
+					performSearch(gui.getSearchedText());
+			} else {
+				if ("connection".equals(e.getActionCommand())) {
+						connectToServer();
+					
+				}
 			}
+		} catch (RemoteException e1) {
+			e1.printStackTrace();
 		}
 		
 	}
 	
 	@Override
-	public Integer getmMaxDownloadCapacity() {
+	public Integer getmMaxDownloadCapacity() throws RemoteException {
 		return maxDownloadCapacity;
 	}
 	

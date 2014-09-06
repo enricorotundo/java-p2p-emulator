@@ -5,21 +5,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import model.client.ClientResources;
+
 public class PartDownloader extends Thread {
 	
 	final private AtomicInteger currentDownloadsNumber;
 	final private ConcurrentHashMap<ClientInterface, AtomicBoolean> ownersClientsList;
-	final private AtomicInteger[] parts;
+	final private ClientResources resourceModel; // MODEL qui lo uso solo per modificare lo status delle parti
 	final private String[] resourceToDownload; // il nome della risorsa da scaricare
 	final private int partToDownloadIndex;
 	final private ClientInterface clientToDownloadFrom;
 	final private String clientName;
 
-	public PartDownloader(final AtomicInteger currentDownloadsNumber, final ConcurrentHashMap<ClientInterface, AtomicBoolean> ownersClientsList, final AtomicInteger[] parts, final String[] resourceToDownload, final int partToDownloadIndex, final ClientInterface clientToDownloadFrom) throws RemoteException {
+	public PartDownloader(final AtomicInteger currentDownloadsNumber, final ConcurrentHashMap<ClientInterface, AtomicBoolean> ownersClientsList, final ClientResources resourceModel, final String[] resourceToDownload, final int partToDownloadIndex, final ClientInterface clientToDownloadFrom) throws RemoteException {
 		setDaemon(true);
 		this.currentDownloadsNumber = currentDownloadsNumber;
 		this.ownersClientsList = ownersClientsList;
-		this.parts = parts;
+		this.resourceModel = resourceModel; // punta al MODEL ClientResources
 		this.resourceToDownload = resourceToDownload;
 		this.partToDownloadIndex = partToDownloadIndex;
 		this.clientToDownloadFrom = clientToDownloadFrom;
@@ -37,7 +39,7 @@ public class PartDownloader extends Thread {
 		System.out.println("Starting to download " + resourceToDownload[0] + " part " + partToDownloadIndex + " from " +clientName);
 		try {
 			clientToDownloadFrom.download(this.getName());
-			parts[partToDownloadIndex].set(1);; // segno la parte come scaricata
+			resourceModel.setPartStatus(partToDownloadIndex, 1);  // segno la parte come scaricata
 			ownersClientsList.get(clientToDownloadFrom).set(false);// segno il client come libero
 			currentDownloadsNumber.decrementAndGet();
 			/*
