@@ -26,7 +26,7 @@ import model.share.Resource;
 public class Client extends UnicastRemoteObject implements ClientInterface, ActionListener  {
 	
 	/**************** TEMPO DI DONWLOAD COSTANTE (PER PARTE) **************/
-	public static final long UPLOAD_TIME = 500;
+	public static final long UPLOAD_TIME = 1500;
 	/**********************************************************************/
 	
 	private static final long serialVersionUID = -3445312807782067423L;

@@ -57,6 +57,7 @@ public class DownloadScheduler extends Thread {
 			 * inoltre ce' almeno un possessore
 			 */	
 			synchronized (currentDownloadsNumber) {
+			
 				while (currentDownloadsNumber.get() >= maxConcurrentDownload) {
 					try {
 						// verra risvegliato quando PartDownloader completa il downloand di una parte
@@ -83,6 +84,7 @@ public class DownloadScheduler extends Thread {
 				} else {
 					// partToDownloadIndex = -1 indica che non ci sono piu' parti da scaricare
 					// addAvailableResource() controlla se era in download la rimuova dalla coda download
+					resourceModel.moveCompleteDownload(resourceToDownload[0] + " " + resourceToDownload[1]);
 					resourceModel.addAvailableResource(resourceToDownload[0] + " " + resourceToDownload[1]);
 				}
 			}

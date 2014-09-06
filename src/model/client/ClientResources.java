@@ -82,8 +82,10 @@ public class ClientResources extends Observable {
 		synchronized (downloads) {
 			if (!downloads.isEmpty()) {
 				for (Resource downloadingResource : downloads) {
+					int index = 1;
 					for (AtomicInteger partStatus : parts) {
-						modelDownloads.addElement(downloadingResource + " " + partStatusInterpreter(partStatus));
+						modelDownloads.addElement(downloadingResource + " [" + index + "/" + parts.size()+ "] " + partStatusInterpreter(partStatus));
+						index++;
 					}			
 				}				
 			}
@@ -104,17 +106,27 @@ public class ClientResources extends Observable {
 	// chiamato da starter.ClientStarter prima di creare il controller.client.Client
 	// chiamato da ...
 	public void addAvailableResource(final String insertResourceName) {
+		System.out.println("addAvailableResource: " + insertResourceName);
 		final Resource toInsertResource = new Resource(insertResourceName.substring(0,1), Integer.parseInt(insertResourceName.substring(2,3)));
 		synchronized (resources) {
-			synchronized (downloads) {
-				
-				java.util.Iterator<Resource> iterator = downloads.iterator();
-				while (iterator.hasNext()) {
-					if (iterator.next().toString().equals(insertResourceName)) {
-						iterator.remove();
-					}
-				}		
-				resources.add(toInsertResource);
+			resources.add(toInsertResource);
+		}
+		// notifico alla VIEW le modifiche
+		setChanged();  
+		notifyObservers();
+	}
+	
+	public void moveCompleteDownload(final String insertResourceName) {
+		System.out.println("moveCompleteDownload: " + insertResourceName);
+		synchronized (downloads) {
+			java.util.Iterator<Resource> iterator = downloads.iterator();
+			while (iterator.hasNext()) {
+				if (iterator.next().toString().equals(insertResourceName)) {
+					iterator.remove();
+				}
+			}	
+			synchronized (parts) {
+				parts.clear();
 			}
 		}
 		// notifico alla VIEW le modifiche
