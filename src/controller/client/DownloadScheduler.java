@@ -68,16 +68,23 @@ public class DownloadScheduler extends Thread {
 				//qui ho il via libera per scaricare
 				
 				final int partToDownloadIndex = partToDownloadIndex();
-				final ClientInterface clientToDownloadFrom = clientToDownloadFrom(partToDownloadIndex);
-				try {
-					new PartDownloader(currentDownloadsNumber, ownersClientsList, resourceModel, resourceToDownload, partToDownloadIndex, clientToDownloadFrom);
-				} catch (RemoteException e) {
-					// gestico il caso in cui un client va down
-					currentDownloadsNumber.decrementAndGet();
-					resourceModel.setPartStatus(partToDownloadIndex, 0);
-					ownersClientsList.remove(clientToDownloadFrom);
-					System.out.println("Error while contacting a client no more available.");
-				} 
+				
+				if (partToDownloadIndex >= 0) {
+					final ClientInterface clientToDownloadFrom = clientToDownloadFrom(partToDownloadIndex);
+					try {
+						new PartDownloader(currentDownloadsNumber, ownersClientsList, resourceModel, resourceToDownload, partToDownloadIndex, clientToDownloadFrom).start();
+					} catch (RemoteException e) {
+						// gestico il caso in cui un client va down
+						currentDownloadsNumber.decrementAndGet();
+						resourceModel.setPartStatus(partToDownloadIndex, 0);
+						ownersClientsList.remove(clientToDownloadFrom);
+						System.out.println("Error while contacting a client no more available.");
+					} 					
+				} else {
+					// partToDownloadIndex = -1 indica che non ci sono piu' parti da scaricare
+					// addAvailableResource() controlla se era in download la rimuova dalla coda download
+					resourceModel.addAvailableResource(resourceToDownload[0] + " " + resourceToDownload[1]);
+				}
 			}
 		}
 	}

@@ -46,7 +46,9 @@ public class PartDownloader extends Thread {
 			 *  risveglio il DownloadScheduler se era in wait a causa del
 			 *  raggiungiemnto di capacita massima di download del client
 			 */
-			currentDownloadsNumber.notifyAll();
+			synchronized (currentDownloadsNumber) {
+				currentDownloadsNumber.notifyAll();				
+			}
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}

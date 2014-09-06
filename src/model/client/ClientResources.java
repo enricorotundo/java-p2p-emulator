@@ -5,6 +5,7 @@ import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.DefaultListModel;
+import javax.swing.text.html.HTMLDocument.Iterator;
 
 import model.share.Resource;
 
@@ -17,7 +18,10 @@ public class ClientResources extends Observable {
 	
 	public Vector<AtomicInteger> createParts(final int howManyPartsToDownload) {
 		synchronized (parts) {
-			this.parts = new Vector<AtomicInteger>(howManyPartsToDownload);
+			parts.clear();
+			for (int i = 0; i < howManyPartsToDownload; i++) {
+				parts.add(new AtomicInteger(0));
+			}
 			// notifico alla VIEW le modifiche
 			setChanged();  
 			notifyObservers();
@@ -34,7 +38,9 @@ public class ClientResources extends Observable {
 	// status: 1 = completa, 0 = non scaricata, -1 = in scaricamento
 	public void setPartStatus(final int index, final int status) {
 		synchronized (parts) {
-			parts.elementAt(index).set(status);		
+			if (!parts.isEmpty()) {
+				parts.elementAt(index).set(status);						
+			}
 		}
 		// notifico alla VIEW le modifiche
 		setChanged();  
@@ -75,30 +81,41 @@ public class ClientResources extends Observable {
 		final DefaultListModel modelDownloads = new DefaultListModel();
 		synchronized (downloads) {
 			if (!downloads.isEmpty()) {
-				// prendo il nome della prima risorsa in download
-				final String downloadingResourceName = downloads.get(downloads.indexOf(downloads.firstElement())).toString();
-				for (AtomicInteger partStatus : parts) {
-					modelDownloads.addElement(downloadingResourceName + " " + partStatus);
-				}			
+				for (Resource downloadingResource : downloads) {
+					for (AtomicInteger partStatus : parts) {
+						modelDownloads.addElement(downloadingResource + " " + partStatusInterpreter(partStatus));
+					}			
+				}				
 			}
 		}
 		return modelDownloads;
-		
-		
-//		final DefaultListModel modelDownloads = new DefaultListModel();
-//		synchronized (downloads) {
-//			for (Resource oneResource : downloads) {
-//				modelDownloads.addElement(oneResource);
-//			}			
-//		}
-//		return modelDownloads;
+	}
+	
+	private String partStatusInterpreter(final AtomicInteger partStatus) {
+		final String result;
+		switch (partStatus.get()) {
+			case 1: result = "[Completed]"; break;
+			case -1: result = "[Downloading]"; break;
+			default: result = "[Not started]"; break;
+		}
+		return result;
 	}
 	
 	// chiamato da starter.ClientStarter prima di creare il controller.client.Client
 	// chiamato da ...
 	public void addAvailableResource(final String insertResourceName) {
+		final Resource toInsertResource = new Resource(insertResourceName.substring(0,1), Integer.parseInt(insertResourceName.substring(2,3)));
 		synchronized (resources) {
-			resources.add(new Resource(insertResourceName.substring(0,1), Integer.parseInt(insertResourceName.substring(2,3))));
+			synchronized (downloads) {
+				
+				java.util.Iterator<Resource> iterator = downloads.iterator();
+				while (iterator.hasNext()) {
+					if (iterator.next().toString().equals(insertResourceName)) {
+						iterator.remove();
+					}
+				}		
+				resources.add(toInsertResource);
+			}
 		}
 		// notifico alla VIEW le modifiche
 		setChanged();  
