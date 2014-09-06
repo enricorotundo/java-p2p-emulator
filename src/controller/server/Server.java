@@ -103,8 +103,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 
 	@Override
 	public Vector<ClientInterface> getClients() throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
+		return connectedClients.getConnectedClients();			
 	}
 
 	@Override
@@ -118,8 +117,19 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 	}
 
 	@Override
-	public Vector<ClientInterface> resourceOwners(String paramResourceName) throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
+	public Vector<ClientInterface> getResourceOwners(final String paramResourceName, final String clientCaller) throws RemoteException {
+		final Vector<ClientInterface> searchedResourceOwners = new Vector<ClientInterface>();
+		synchronized (serversMonitor) {	
+			for (final ServerInterface serverInterface : connectedServers.getConnectedServers()) {
+				for (final ClientInterface cli : serverInterface.getClients()) {
+					gui.appendLogEntry("Looking for " + paramResourceName + " in " + cli.getClientName() + "@" + serverInterface.getServerNameString());
+					if (cli.checkResourcePossession(paramResourceName, clientCaller)) {
+						gui.appendLogEntry(cli.getClientName() + "@" + serverInterface.getServerNameString() + " has " + paramResourceName);
+						searchedResourceOwners.add(cli);
+					}		
+				}
+			}
+		}
+		return searchedResourceOwners;
 	}
 }

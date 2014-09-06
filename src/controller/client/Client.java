@@ -1,5 +1,6 @@
 package controller.client;
 
+import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.MalformedURLException;
@@ -33,7 +34,7 @@ public class Client extends UnicastRemoteObject  implements ClientInterface, Act
 	private AtomicBoolean connectionStatusUp = new AtomicBoolean(false); //false=down, true=up
 	private AtomicInteger currentDownloads = new AtomicInteger(0);
 	private final Integer maxDownloadCapacity;
-	private final ClientResources resources; // MODEL
+	private final ClientResources resourceModel; // MODEL
 	private final ClientFrame gui; // VIEW
 	private final ConnectionChecker connectionChecker;
 	
@@ -41,10 +42,10 @@ public class Client extends UnicastRemoteObject  implements ClientInterface, Act
 		this.clientName = clientName;
 		this.serverName = serverName;
 		this.maxDownloadCapacity = maxDownloadCapacity;
-		this.resources = argResources;
-		gui = new ClientFrame(clientName + "@" + serverName, resources, this);
+		this.resourceModel = argResources;
+		gui = new ClientFrame(clientName + "@" + serverName, resourceModel, this);
 		// dico al MODEL chi e' il suo Observer
-		this.resources.addObserver(gui);
+		this.resourceModel.addObserver(gui);
 		// mi connetto subito al server 
 		connectToServer();
 		// avvio il thread che controlla lo status della connessione tra me Client e il mio Server
@@ -97,10 +98,14 @@ public class Client extends UnicastRemoteObject  implements ClientInterface, Act
 		return true;
 	}
 
+	// lista risorse possedute dal client
 	@Override
 	public Vector<String[]> getResourceList() throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
+		Vector<String[]> resourceList = new Vector<String[]>();
+		for (Resource singleResource : resourceModel.getResources()) {
+			resourceList.add(singleResource.toArrayStrings());
+		}
+		return resourceList;
 	}
 	
 	private final void connectToServer() {
@@ -140,11 +145,103 @@ public class Client extends UnicastRemoteObject  implements ClientInterface, Act
 			}
 		}.start();
 	}
+	
+	@Override
+	public Boolean checkResourcePossession(final String resourceToSearchFor, final String caller) throws RemoteException {
+		Boolean result = false;
+		if(!caller.equals(clientName)) {
+			try {
+				synchronized (resourceModel) {
+					result = resourceModel.containsResource(resourceToSearchFor);
+				}
+			} catch (NumberFormatException e) {
+				e.printStackTrace();
+			}
+			gui.appendLogEntry(caller + " contacted me for " + resourceToSearchFor);			
+		}
+		return result;
+	}
+	
+	private Vector<ClientInterface> getResourceOwners(final String paramSearchedResourceString) {
+		ServerInterface remoteServerInterface = null;
+		Vector<ClientInterface> owners = null;
+		
+		try {
+			remoteServerInterface = (ServerInterface) Naming.lookup(Server.URL_STRING + serverName);
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+			e.printStackTrace();
+		}
+		
+		if (remoteServerInterface != null) {
+			try {
+				owners = remoteServerInterface.getResourceOwners(paramSearchedResourceString, clientName);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}			
+		} else {
+			owners = new Vector<ClientInterface>();
+		}
+		return owners;
+	}
+	
+	private final void performSearch(final String searchedResourceName) {
+
+		new Thread() {
+			@Override
+			public void run() {
+				synchronized (connectionStatusUp) {
+						// check for text field empty
+						if (searchedResourceName.isEmpty()) {
+							JOptionPane.showMessageDialog(gui, "Please enter a file name.", "File name empty", JOptionPane.WARNING_MESSAGE);
+						} else {
+								// e' in concorrenza con connectToServer()
+								// check if client is connected
+								if (connectionStatusUp.get() == true) {
+									// client is connected and check if it already has the searched resource
+									// if this client DOESNT own searched resource
+									try {
+										if (!checkResourcePossession(searchedResourceName, clientName)) {
+											gui.appendLogEntry("I havent " + searchedResourceName + ", asking " + serverName + " for owners.");
+											Vector<ClientInterface> owners = null;
+											owners = getResourceOwners(searchedResourceName);
+											// if there are at least one resource owner
+											if (!owners.isEmpty()) {
+												gui.appendLogEntry("There are " + owners.size() + " owners of " + searchedResourceName);
+
+												// TODO: qui ho i possessori della risorsa da scaricare!!!!!!!!!!!!!!!!!!!!
+												// stub
+												for (ClientInterface clientInterface : owners) {
+													try {
+														gui.appendLogEntry(clientInterface.getClientName() + " owns" + searchedResourceName);
+													} catch (RemoteException e) {
+														// TODO Auto-generated catch block
+														e.printStackTrace();
+													}
+												}
+												
+											} else {
+												JOptionPane.showMessageDialog(gui, "Resource " + searchedResourceName + " not found in the network, please try searching another resource", "Please try searching another resource.", JOptionPane.INFORMATION_MESSAGE);
+											}
+										} else {
+											JOptionPane.showMessageDialog(gui, "You cannon't download a owned resource, please try searching another one.", "You already own searched resource.", JOptionPane.INFORMATION_MESSAGE);
+										}
+									} catch (HeadlessException | RemoteException e) {
+										e.printStackTrace();
+									}
+								} else {
+									JOptionPane.showMessageDialog(gui, "Please connect first.", "Please connect first", JOptionPane.ERROR_MESSAGE);
+								}
+						}
+					}	
+				}
+		}.start();
+	}
+	
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if ("search".equals(e.getActionCommand())) {
-			// performSearch
+			 performSearch(gui.getSearchedText());
 		} else {
 			if ("connection".equals(e.getActionCommand())) {
 				connectToServer();

@@ -11,4 +11,5 @@ public interface ClientInterface extends Remote {
 	public String getConnectedServer() throws RemoteException;
 	public Boolean test() throws RemoteException;
 	public Vector<String[]> getResourceList() throws RemoteException;
+	public Boolean checkResourcePossession(final String resourceToSearchFor, final String caller) throws RemoteException;
 }

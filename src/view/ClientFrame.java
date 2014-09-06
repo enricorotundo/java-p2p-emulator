@@ -109,13 +109,17 @@ public class ClientFrame extends AbstractBasicFrame implements Observer {
 	}
 
 	private void updateDownloadList() {
-		// chiamare model.ClientResources.getDonwloadsModel();
-		downloadsList.setModel(clientResources.getModelDownloads());
+		synchronized (downloadsList) {
+			// chiamare model.ClientResources.getDonwloadsModel();
+			downloadsList.setModel(clientResources.getDefaultListModelDownloads());			
+		}
 	}
 	
 	private void updateResourceList() {
-		// chiamare model.ClientResources.getResourcesModel();
-		resourcesList.setModel(clientResources.getModelResources());
+		synchronized (resourcesList) {
+			// chiamare model.ClientResources.getResourcesModel();
+			resourcesList.setModel(clientResources.getDefaultListModelResources());			
+		}
 	}
 	
 	// invocato quando il MODEL viene modificato -> aggiorna la VIEW
@@ -126,6 +130,16 @@ public class ClientFrame extends AbstractBasicFrame implements Observer {
 	}
 	
 	public void setConnectionButtonText(final String textToShow) {
-		connectionButton.setText(textToShow);
+		synchronized (connectionButton) {
+			connectionButton.setText(textToShow);			
+		}
+		fileSearchTextField.requestFocus();
+	}
+	
+	public String getSearchedText() {
+		fileSearchTextField.requestFocus();
+		synchronized (fileSearchTextField) {
+			return fileSearchTextField.getText();			
+		}
 	}
 }

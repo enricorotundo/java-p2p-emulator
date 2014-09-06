@@ -19,7 +19,7 @@ public class ConnectedClients extends Observable {
 	private Vector<ClientInterface> connectedClients = new Vector<ClientInterface>();
 		
 	// chiamato da view.ServerFrame.updateConnectedClients;
-	public DefaultListModel getConnectedClientsModel() {
+	public DefaultListModel getConnectedClientsDefaultListModel() {
 		final DefaultListModel modelConnectedClients = new DefaultListModel();
 		synchronized (connectedClients) {
 			try {

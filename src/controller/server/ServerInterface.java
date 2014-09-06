@@ -15,6 +15,6 @@ public interface ServerInterface extends Remote {
 	public Vector<ClientInterface> getClients() throws RemoteException;
 	public String getServerNameString() throws RemoteException;
 	public String getServerUrl() throws RemoteException;
-	public Vector<ClientInterface> resourceOwners(String paramResourceName) throws RemoteException;
+	public Vector<ClientInterface> getResourceOwners(final String paramResourceName, final String caller) throws RemoteException;
 
 }
