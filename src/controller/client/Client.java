@@ -220,9 +220,7 @@ public class Client extends UnicastRemoteObject  implements ClientInterface, Act
 												// if there are at least one resource owner
 												if (!owners.isEmpty()) {
 													gui.appendLogEntry("There are " + owners.size() + " owners of " + searchedResourceName);
-													
-													// TODO: qui ho i possessori della risorsa da scaricare!!!!!!!!!!!!!!!!!!!!
-													
+																										
 													// stampo i possessori della risorsa
 													for (ClientInterface clientInterface : owners) {
 														try {

@@ -1,15 +1,12 @@
 package controller.client;
 
+import java.rmi.RemoteException;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.swing.DefaultListModel;
-import javax.swing.text.html.HTMLDocument.Iterator;
 
 import model.client.ClientResources;
 
@@ -18,8 +15,7 @@ public class DownloadScheduler extends Thread {
 	private ConcurrentHashMap<ClientInterface, AtomicBoolean> ownersClientsList;
 	private String[] resourceToDownload; // il nome della risorsa da scaricare
 	private Integer howManyPartsToDownload; // di quante parti e' composta la risorsa da scaricare
-	private AtomicBoolean[] downloadedParts; // array di AtomicBoolean inizialmente tutti a FALSE
-//	private Integer previousListModelSize = 0; //
+	private AtomicInteger[] parts; // array di AtomicInteger inizialmente tutti a 0; -1 = in scaricamento; 1 = scaricato
 	private final Integer maxDownloadCapacity; // capacita' massima di download del client
 	private final AtomicInteger currentDownloadsNumber; //
 	
@@ -32,7 +28,7 @@ public class DownloadScheduler extends Thread {
 		}
 		this.resourceToDownload = resource;
 		this.howManyPartsToDownload = Integer.parseInt(resource[1]);
-		this.downloadedParts = new AtomicBoolean[howManyPartsToDownload];
+		this.parts = new AtomicInteger[howManyPartsToDownload];
 		this.maxDownloadCapacity = maxDownloadCapacity;
 		this.currentDownloadsNumber = currentDownloadsNumber;
 	}
@@ -55,12 +51,11 @@ public class DownloadScheduler extends Thread {
 		}
 		// qui ce' almeno una risorsa da scaricare
 		
-		while (trueCounter(downloadedParts) < howManyPartsToDownload && !ownersClientsList.isEmpty()) {
+		while (trueCounter(parts) < howManyPartsToDownload && !ownersClientsList.isEmpty()) {
 			/*
 			 * qui ci sono ancora parti della risorsa da scaricare
 			 * inoltre ce' almeno un possessore
-			 */
-			
+			 */	
 			synchronized (currentDownloadsNumber) {
 				while (currentDownloadsNumber.get() >= maxConcurrentDownload) {
 					try {
@@ -72,37 +67,35 @@ public class DownloadScheduler extends Thread {
 				}
 				//qui ho il via libera per scaricare
 				
-				// chiamte atomiche perche' sync su currentDownloadNumber
-				partToDownloadIndex();
-				clientToDownloadFrom();
-				
+				final int partToDownloadIndex = partToDownloadIndex();
+				final ClientInterface clientToDownloadFrom = clientToDownloadFrom(partToDownloadIndex);
+				try {
+					new PartDownloader(currentDownloadsNumber, ownersClientsList, parts, resourceToDownload, partToDownloadIndex, clientToDownloadFrom);
+				} catch (RemoteException e) {
+					// gestico il caso in cui un client va down
+					currentDownloadsNumber.decrementAndGet();
+					parts[partToDownloadIndex].set(0);
+					ownersClientsList.remove(clientToDownloadFrom);
+					System.out.println("Error while contacting a client no more available.");
+				} 
 			}
 		}
-		Client lastClientAssigned = null;
 	}
 	
-	private ClientInterface clientToDownloadFrom() {
+	private ClientInterface clientToDownloadFrom(final Integer partToDownloadIndex) {
 		ClientInterface clientToDownladFrom = null;
-		boolean found = false;
-		
-		/*
-		 * even though all operations are thread-safe, 
-		 * retrieval operations do not entail locking, 
-		 * and there is not any support for locking the entire table in a way 
-		 * that prevents all access.
-		 */
-
-		Iterator<Map.Entry<ClientInterface, AtomicBoolean>> iterator = ownersClientsList.entrySet().iterator();
-		
-//		for(Map.Entry<ClientInterface, AtomicBoolean> ownersEntry : ownersClientsList.entrySet()){
-//		    
-//			
-//			ownersEntry.getKey();
-//			ownersEntry.getValue();
-//		}
-		
-		
-		
+		boolean found = false;						
+		for(Map.Entry<ClientInterface, AtomicBoolean> ownersEntry : ownersClientsList.entrySet()){
+		    if (ownersEntry.getValue().get() == false && found == false) {
+				// qui ownersEntry non e' impegnato
+		    	found = true;
+		    	// segno il client come impegnato (true)
+		    	ownersEntry.setValue(new AtomicBoolean(true));
+		    	clientToDownladFrom = ownersEntry.getKey();
+		    	parts[partToDownloadIndex].set(-1); // -1 = in scaricamento
+		    	currentDownloadsNumber.incrementAndGet();
+			}
+		}
 		return clientToDownladFrom;
 	}
 	
@@ -111,8 +104,8 @@ public class DownloadScheduler extends Thread {
 	 */
 	private int partToDownloadIndex() {
 		int result = -1;
-		for (int i = 0; i < downloadedParts.length && result == -1; i++) {
-			if (downloadedParts[i].get() == false) {
+		for (int i = 0; i < parts.length && result == -1; i++) {
+			if (parts[i].get() == 0) {
 				result = i;
 			}
 		}		
@@ -130,10 +123,10 @@ public class DownloadScheduler extends Thread {
 		return Collections.min(dkn);
 	}
 	
-	private Integer trueCounter(AtomicBoolean[] values) {
+	private Integer trueCounter(AtomicInteger[] values) {
 		int count = 0;
-		for (AtomicBoolean val : values) {
-			count += (val.get() == true ? 1 : 0);
+		for (AtomicInteger val : values) {
+			count += (val.get() == 1 ? 1 : 0);
 		}
 		return count;
 	}
