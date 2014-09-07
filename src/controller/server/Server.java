@@ -126,6 +126,26 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 	public String getServerUrl() throws RemoteException {
 		return Server.URL_STRING + serverNameString;
 	}
+	
+	private Vector<ClientInterface> getLocalResourceOwners(final String paramResourceName, final String clientCaller) {
+		final Vector<ClientInterface> searchedResourceOwners = new Vector<ClientInterface>();
+		
+		try {
+			// per ogni client connesso ad un particolare server della rete
+			for (final ClientInterface cli : connectedClients.getConnectedClients()) {
+				gui.appendLogEntry("Looking for " + paramResourceName + " in " + cli.getClientName() + "@" + serverNameString);
+				// chiedo al client se possiede la risorsa
+					if (cli.checkResourcePossession(paramResourceName, clientCaller)) {
+						gui.appendLogEntry(cli.getClientName() + "@" + serverNameString + " has " + paramResourceName);
+						searchedResourceOwners.add(cli);
+					}
+			}
+		} catch (RemoteException e) {
+			System.out.println("Error during my client asking for " + paramResourceName);
+		}		
+		
+		return searchedResourceOwners;
+	}
 
 	@Override
 	public Vector<ClientInterface> getLocalResourceOwners(final String paramResourceName, final String clientCaller)  throws RemoteException {
@@ -164,7 +184,6 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 					// chiamo il metodo remoto di un altro server che mi torna i suoi client possessori di paramResourceName
 					searchedResourceOwners.addAll(remoteServerInterface.getLocalResourceOwners(paramResourceName, clientCaller));					
 				}
-			}
 		}
 		return searchedResourceOwners;
 	}
