@@ -35,9 +35,6 @@ public class DownloadScheduler extends Thread {
 	
 	@Override
 	public void run() {
-		int maxConcurrentDownload = min(maxDownloadCapacity, howManyPartsToDownload, ownersClientsList.size());
-		ClientInterface lastClientAssigned = null;
-		
 		/*
 		 * finche' la lista delle risorse da scaricare e' vuota aspetto,
 		 * Client.performSearch(..) chiama la notify su resourceModel
@@ -50,8 +47,10 @@ public class DownloadScheduler extends Thread {
 		} catch (InterruptedException e) {
 			System.out.println("DownloadScheduler waiting interrupted.");
 		}
-		// qui ce' almeno una risorsa da scaricare
 		
+		ClientInterface lastClientSelected = null;
+		int maxConcurrentDownload = min(maxDownloadCapacity, howManyPartsToDownload, ownersClientsList.size());
+		// qui ce' almeno una risorsa da scaricare
 		while (!ownersClientsList.isEmpty() && resourceModel.completePartsCounter() < howManyPartsToDownload) {
 			/*
 			 * qui ci sono ancora parti della risorsa da scaricare
@@ -67,9 +66,8 @@ public class DownloadScheduler extends Thread {
 						System.out.println("DownloadScheduler waiting interrupted.");
 					}
 				}
+				
 				//qui ho il via libera per scaricare
-				
-				
 				int partToDownloadIndex = -1;
 				try {
 					
@@ -90,10 +88,10 @@ public class DownloadScheduler extends Thread {
 							    	found = true;
 							    	// segno il client come impegnato (true)
 							    	ownersEntry.setValue(new AtomicBoolean(true));
-							    	lastClientAssigned = ownersEntry.getKey();
+							    	lastClientSelected = ownersEntry.getKey();
 							    	resourceModel.setPartStatus(partToDownloadIndex, -1); // -1 = in scaricamento
 							    	currentDownloadsNumber.incrementAndGet();
-							    	new PartDownloader(currentDownloadsNumber, ownersClientsList, resourceModel, resourceToDownload, partToDownloadIndex, lastClientAssigned).start();
+							    	new PartDownloader(currentDownloadsNumber, ownersClientsList, resourceModel, resourceToDownload, partToDownloadIndex, lastClientSelected).start();
 								}
 							}
 						}
@@ -103,7 +101,7 @@ public class DownloadScheduler extends Thread {
 					// gestico il caso in cui un client va down
 					currentDownloadsNumber.decrementAndGet();
 					resourceModel.setPartStatus(partToDownloadIndex, 0);
-					ownersClientsList.remove(lastClientAssigned);
+					ownersClientsList.remove(lastClientSelected);
 					System.out.println("Error while contacting a client no more available.");
 				} 					
 			}
@@ -125,10 +123,6 @@ public class DownloadScheduler extends Thread {
 		 * 	2) ci sono client possessori AND ho completato il download di tutte le parti
 		 * 	3) non ci sono piu' client possessori AND mancano delle parti da scaricare
 		 */
-		
-		//TODO occhio all ordine!!!!!!!!!!!!!
-		
-		
 		
 		if (	!(resourceModel.completePartsCounter() < howManyPartsToDownload)) {
 //			1) or 2)
