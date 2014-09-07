@@ -35,6 +35,8 @@ public abstract class AbstractBasicFrame extends JFrame {
 			thrown.printStackTrace();
 		}
 	}
+	
+	
 
 	private static final long serialVersionUID = 4673538213978317742L;
 	protected JPanel mainPanel;
