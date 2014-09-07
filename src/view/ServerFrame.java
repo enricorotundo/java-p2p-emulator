@@ -78,7 +78,7 @@ public class ServerFrame extends AbstractBasicFrame implements Observer {
 	public final void updateConnectedClients() {	
 		// chiamare model.ConnectedClients.getConnectedClientsModel();		
 		final DefaultListModel modelConnectedClients = connectedClients.getConnectedClientsDefaultListModel();
-		if (!modelConnectedClients.isEmpty()) {
+		if (modelConnectedClients.size() > 0) {
 			connectedServersList.setModel(modelConnectedClients);			
 		}
 	}
@@ -87,7 +87,7 @@ public class ServerFrame extends AbstractBasicFrame implements Observer {
 	public final void updateConnectedServers() {
 		// chiamare model.ConnectedServers.getConnectedServersModel();
 		final DefaultListModel modelConnectedServers = connectedServers.getConnectedServersModel();
-		if (!modelConnectedServers.isEmpty()) {
+		if (modelConnectedServers.size() > 0) {
 			connectedServersList.setModel(modelConnectedServers);			
 		}
 	}
