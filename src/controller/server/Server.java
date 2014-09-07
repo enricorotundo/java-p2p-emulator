@@ -36,6 +36,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 
 	public Server(final String paramServerName) throws RemoteException {
 		super();
+		
 		serverNameString = paramServerName;
 		// creo gui
 		gui = new ServerFrame(paramServerName, connectedClients, connectedServers);
