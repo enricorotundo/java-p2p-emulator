@@ -19,9 +19,6 @@ start:
 	xterm $(XTERM) -e "cd bin/ && java starter.ClientStarter C2 Razorback2 3 A 9 D 2; read"  &
 	xterm $(XTERM) -e "cd bin/ && java starter.ClientStarter C3 Razorback2 3 E 2; read"  &
 
-start-client:
-	xterm -e "java -cp bin/ starter.ClientStarter C4 Razorback1 3 A 1 B 4 C 6" &
-
 stop:
 	killall rmiregistry &
 	sleep 1
