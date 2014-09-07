@@ -6,6 +6,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -75,14 +76,20 @@ public class ServerFrame extends AbstractBasicFrame implements Observer {
 	
 	// chiamato da model.server.ConnectedClients  al quale chiede i dati da visualizzare
 	public final void updateConnectedClients() {	
-		// chiamare model.ConnectedClients.getConnectedClientsModel();
-		connectedClientsList.setModel(connectedClients.getConnectedClientsDefaultListModel());
+		// chiamare model.ConnectedClients.getConnectedClientsModel();		
+		final DefaultListModel modelConnectedClients = connectedClients.getConnectedClientsDefaultListModel();
+		if (!modelConnectedClients.isEmpty()) {
+			connectedServersList.setModel(modelConnectedClients);			
+		}
 	}
 	
 	// chiamato da model.server.ConnectedServers al quale chiede i dati da visualizzare
 	public final void updateConnectedServers() {
 		// chiamare model.ConnectedServers.getConnectedServersModel();
-		connectedServersList.setModel(connectedServers.getConnectedServersModel());
+		final DefaultListModel modelConnectedServers = connectedServers.getConnectedServersModel();
+		if (!modelConnectedServers.isEmpty()) {
+			connectedServersList.setModel(modelConnectedServers);			
+		}
 	}
 
 	// invocato quando il MODEL viene modificato -> aggiorna la VIEW
