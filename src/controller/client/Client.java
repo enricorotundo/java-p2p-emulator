@@ -26,7 +26,7 @@ import model.share.Resource;
 public class Client extends UnicastRemoteObject implements ClientInterface, ActionListener  {
 	
 	/**************** TEMPO DI DONWLOAD COSTANTE (PER PARTE) **************/
-	public static final long UPLOAD_TIME = 1500;
+	public static final long UPLOAD_TIME = 3000;
 	/**********************************************************************/
 	
 	private static final long serialVersionUID = -3445312807782067423L;
@@ -162,7 +162,6 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 	@Override
 	public Boolean checkResourcePossession(final String resourceToSearchFor, final String caller) throws RemoteException {
 		Boolean result = false;
-		if(!caller.equals(clientName)) {
 			try {
 				synchronized (resourceModel) {
 					result = resourceModel.containsResource(resourceToSearchFor);
@@ -171,7 +170,6 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 				e.printStackTrace();
 			}
 			gui.appendLogEntry(caller + " contacted me for " + resourceToSearchFor);			
-		}
 		return result;
 	}
 	

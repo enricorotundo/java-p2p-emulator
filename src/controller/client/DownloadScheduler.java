@@ -36,6 +36,7 @@ public class DownloadScheduler extends Thread {
 	@Override
 	public void run() {
 		int maxConcurrentDownload = min(maxDownloadCapacity, howManyPartsToDownload, ownersClientsList.size());
+		ClientInterface lastClientAssigned = null;
 		
 		/*
 		 * finche' la lista delle risorse da scaricare e' vuota aspetto,
@@ -47,11 +48,11 @@ public class DownloadScheduler extends Thread {
 					resourceModel.wait();
 			}
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			System.out.println("DownloadScheduler waiting interrupted.");
 		}
 		// qui ce' almeno una risorsa da scaricare
 		
-		while (resourceModel.completePartsCounter() < howManyPartsToDownload && !ownersClientsList.isEmpty()) {
+		while (!ownersClientsList.isEmpty() && resourceModel.completePartsCounter() < howManyPartsToDownload) {
 			/*
 			 * qui ci sono ancora parti della risorsa da scaricare
 			 * inoltre ce' almeno un possessore
@@ -63,62 +64,82 @@ public class DownloadScheduler extends Thread {
 						// verra risvegliato quando PartDownloader completa il downloand di una parte
 						currentDownloadsNumber.wait();
 					} catch (InterruptedException e) {
-						e.printStackTrace();
+						System.out.println("DownloadScheduler waiting interrupted.");
 					}
 				}
 				//qui ho il via libera per scaricare
 				
-				final int partToDownloadIndex = partToDownloadIndex();
 				
-				if (partToDownloadIndex >= 0) {
-					final ClientInterface clientToDownloadFrom = clientToDownloadFrom(partToDownloadIndex);
-					try {
-						new PartDownloader(currentDownloadsNumber, ownersClientsList, resourceModel, resourceToDownload, partToDownloadIndex, clientToDownloadFrom).start();
-					} catch (RemoteException e) {
-						// gestico il caso in cui un client va down
-						currentDownloadsNumber.decrementAndGet();
-						resourceModel.setPartStatus(partToDownloadIndex, 0);
-						ownersClientsList.remove(clientToDownloadFrom);
-						System.out.println("Error while contacting a client no more available.");
-					} 					
-				} else {
-					// partToDownloadIndex = -1 indica che non ci sono piu' parti da scaricare
-					// addAvailableResource() controlla se era in download la rimuova dalla coda download
-					resourceModel.moveCompleteDownload(resourceToDownload[0] + " " + resourceToDownload[1]);
-					resourceModel.addAvailableResource(resourceToDownload[0] + " " + resourceToDownload[1]);
-				}
+				int partToDownloadIndex = -1;
+				try {
+					
+					/*
+					 * qui sono all'interno di un while che cicla finche' ci sono client per la risorsa
+					 * e finche' ci non ho scaricato tutte le parti di cui la risorsa e' composta.
+					 * Ora cerco, a partire dalla parte #0, quella che ha status 0=not started
+					 * oppure anche failed=2 
+					 */
+					for (int i = 0; i < resourceModel.getPartsLength() && partToDownloadIndex == -1; i++) {
+						if (resourceModel.getPartStatus(i) == 0 || resourceModel.getPartStatus(i) == 2) {
+							partToDownloadIndex = i;
+							
+							boolean found = false;						
+							for(Map.Entry<ClientInterface, AtomicBoolean> ownersEntry : ownersClientsList.entrySet()){
+							    if (ownersEntry.getValue().get() == false && found == false) {
+									// qui ownersEntry non e' impegnato
+							    	found = true;
+							    	// segno il client come impegnato (true)
+							    	ownersEntry.setValue(new AtomicBoolean(true));
+							    	lastClientAssigned = ownersEntry.getKey();
+							    	resourceModel.setPartStatus(partToDownloadIndex, -1); // -1 = in scaricamento
+							    	currentDownloadsNumber.incrementAndGet();
+							    	new PartDownloader(currentDownloadsNumber, ownersClientsList, resourceModel, resourceToDownload, partToDownloadIndex, lastClientAssigned).start();
+								}
+							}
+						}
+					}
+
+				} catch (RemoteException e) {
+					// gestico il caso in cui un client va down
+					currentDownloadsNumber.decrementAndGet();
+					resourceModel.setPartStatus(partToDownloadIndex, 0);
+					ownersClientsList.remove(lastClientAssigned);
+					System.out.println("Error while contacting a client no more available.");
+				} 					
 			}
 		}
-	}
-	
-	private ClientInterface clientToDownloadFrom(final Integer partToDownloadIndex) {
-		ClientInterface clientToDownladFrom = null;
-		boolean found = false;						
-		for(Map.Entry<ClientInterface, AtomicBoolean> ownersEntry : ownersClientsList.entrySet()){
-		    if (ownersEntry.getValue().get() == false && found == false) {
-				// qui ownersEntry non e' impegnato
-		    	found = true;
-		    	// segno il client come impegnato (true)
-		    	ownersEntry.setValue(new AtomicBoolean(true));
-		    	clientToDownladFrom = ownersEntry.getKey();
-		    	resourceModel.setPartStatus(partToDownloadIndex, -1); // -1 = in scaricamento
-		    	currentDownloadsNumber.incrementAndGet();
-			}
+		/*
+		 * 	qui la condizione
+		 * 	(!ownersClientsList.isEmpty() && resourceModel.completePartsCounter() < howManyPartsToDownload)
+		 * 	non e' piu' vera, vale cioe' la sua negazione:
+		 * 	
+		 * per semplificare pongo !ownersClientsList.isEmpty() = ciSonoClientDisponibili
+		 * 
+		 * 		   ciSonoClientDisponibili		| 	completePartsCounter() < howManyPartsToDownload
+		 * 		----------------------------	|	-----------------------------------------------
+		 * 					0					|						0
+		 * 					1					|						0
+		 * 					0					|						1
+		 * 
+		 * 	1) non ci sono piu' client possessori AND  ho completato il download di tutte le parti
+		 * 	2) ci sono client possessori AND ho completato il download di tutte le parti
+		 * 	3) non ci sono piu' client possessori AND mancano delle parti da scaricare
+		 */
+		
+		//TODO occhio all ordine!!!!!!!!!!!!!
+		
+		
+		
+		if (	!(resourceModel.completePartsCounter() < howManyPartsToDownload)) {
+//			1) or 2)
+			resourceModel.addAvailableResource(resourceToDownload[0] + " " + resourceToDownload[1]);
+			System.out.println(resourceToDownload[0] + " " + resourceToDownload[1] + ": scaricata!");
+		} else {
+//			3)
+			System.out.println("Unable to download entirely " + resourceToDownload[0] + " " + resourceToDownload[1]);
+//			//DEVO ELIMINARE DALLA CODA DOWNLOAD
+			resourceModel.resetDownloadDatas();			
 		}
-		return clientToDownladFrom;
-	}
-	
-	/**
-	 * @return l'indice di una parte che non e' ancora stata scaricata
-	 */
-	private int partToDownloadIndex() {
-		int result = -1;
-		for (int i = 0; i < resourceModel.getPartsLength() && result == -1; i++) {
-			if (resourceModel.getPartStatus(i) == 0) {
-				result = i;
-			}
-		}		
-		return result;
 	}
 	
 	/**

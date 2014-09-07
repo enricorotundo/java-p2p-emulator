@@ -40,6 +40,18 @@ public class PartDownloader extends Thread {
 		try {
 			clientToDownloadFrom.download(this.getName());
 			resourceModel.setPartStatus(partToDownloadIndex, 1);  // segno la parte come scaricata
+		} catch (RemoteException e) {
+			// c'e stato un problema con lo scaricamento della parte
+			resourceModel.setPartStatus(partToDownloadIndex, 2);  // segno la parte come fallito
+			System.out.println("WARNING: client disconnected!");
+			
+			// lascio il tempo all utente di accorgersi quale parte ha fallito
+			try {
+				sleep(2000);
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+			}
+		} finally {
 			ownersClientsList.get(clientToDownloadFrom).set(false);// segno il client come libero
 			currentDownloadsNumber.decrementAndGet();
 			/*
@@ -48,9 +60,7 @@ public class PartDownloader extends Thread {
 			 */
 			synchronized (currentDownloadsNumber) {
 				currentDownloadsNumber.notifyAll();				
-			}
-		} catch (RemoteException e) {
-			e.printStackTrace();
+			}			
 		}
 	}
 }

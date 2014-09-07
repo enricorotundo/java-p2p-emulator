@@ -29,6 +29,18 @@ public class ClientResources extends Observable {
 		}
 	}
 	
+	public void resetDownloadDatas() {
+		synchronized (parts) {
+			parts.clear();
+		}
+		synchronized (downloads) {
+			downloads.clear();
+		}
+		// notifico alla VIEW le modifiche
+		setChanged();  
+		notifyObservers();
+	}
+	
 	public int getPartStatus(final int index) {
 		synchronized (parts) {
 			return parts.elementAt(index).get();
@@ -96,6 +108,7 @@ public class ClientResources extends Observable {
 	private String partStatusInterpreter(final AtomicInteger partStatus) {
 		final String result;
 		switch (partStatus.get()) {
+			case 2: result = "[Failed]"; break;
 			case 1: result = "[Completed]"; break;
 			case -1: result = "[Downloading]"; break;
 			default: result = "[Not started]"; break;
@@ -106,28 +119,15 @@ public class ClientResources extends Observable {
 	// chiamato da starter.ClientStarter prima di creare il controller.client.Client
 	// chiamato da ...
 	public void addAvailableResource(final String insertResourceName) {
-		System.out.println("addAvailableResource: " + insertResourceName);
 		final Resource toInsertResource = new Resource(insertResourceName.substring(0,1), Integer.parseInt(insertResourceName.substring(2,3)));
+		synchronized (downloads) {
+			/*
+			 * posso perche e' richiesto il download di SOLO una risorsa alla volta
+			 */
+			downloads.clear(); 
+		}
 		synchronized (resources) {
 			resources.add(toInsertResource);
-		}
-		// notifico alla VIEW le modifiche
-		setChanged();  
-		notifyObservers();
-	}
-	
-	public void moveCompleteDownload(final String insertResourceName) {
-		System.out.println("moveCompleteDownload: " + insertResourceName);
-		synchronized (downloads) {
-			java.util.Iterator<Resource> iterator = downloads.iterator();
-			while (iterator.hasNext()) {
-				if (iterator.next().toString().equals(insertResourceName)) {
-					iterator.remove();
-				}
-			}	
-			synchronized (parts) {
-				parts.clear();
-			}
 		}
 		// notifico alla VIEW le modifiche
 		setChanged();  
