@@ -18,31 +18,6 @@ import controller.client.ClientInterface;
 
 public class Server extends UnicastRemoteObject implements ServerInterface {
 	
-//	/*
-//	 * http://stackoverflow.com/questions/4448523/how-can-i-catch-event-dispatch-thread-edt-exceptions
-//	 */
-//	public static class ExceptionHandler
-//	implements Thread.UncaughtExceptionHandler {
-//		
-//		public void handle(Throwable thrown) {
-//			// for EDT exceptions
-//			handleException(Thread.currentThread().getName(), thrown);
-//		}
-//		
-//		public void uncaughtException(Thread thread, Throwable thrown) {
-//			// for other uncaught exceptions
-//			handleException(thread.getName(), thrown);
-//		}
-//		
-//		protected void handleException(String tname, Throwable thrown) {
-//			System.err.println("Exception on " + tname);
-//			thrown.printStackTrace();
-//		}
-//	}
-	
-	
-
-
 	private static final long serialVersionUID = 8405014344648483674L;
 	private static final String HOST = "localhost";
 	public static final String URL_STRING = "rmi://" + HOST + "/Server/";
@@ -61,12 +36,6 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 
 	public Server(final String paramServerName) throws RemoteException {
 		super();
-		
-		/*
-		 * http://stackoverflow.com/questions/4448523/how-can-i-catch-event-dispatch-thread-edt-exceptions
-		 */
-//		Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
-//		System.setProperty("sun.awt.exception.handler", ExceptionHandler.class.getName());
 		
 		serverNameString = paramServerName;
 		// creo gui
