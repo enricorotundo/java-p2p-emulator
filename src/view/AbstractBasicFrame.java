@@ -9,9 +9,12 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
+
 
 public abstract class AbstractBasicFrame extends JFrame {
-
+	
+	
 	private static final long serialVersionUID = 4673538213978317742L;
 	protected JPanel mainPanel;
 	protected JPanel topPanel;
@@ -21,6 +24,9 @@ public abstract class AbstractBasicFrame extends JFrame {
 	
 	public AbstractBasicFrame(final String paramFrameNameString) {
 		super(paramFrameNameString);
+		
+		
+		
 		setSize(new Dimension(400, 500));
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
