@@ -76,14 +76,24 @@ public class ServerFrame extends AbstractBasicFrame implements Observer {
 	
 	// chiamato da model.server.ConnectedClients  al quale chiede i dati da visualizzare
 	public final void updateConnectedClients() {	
-		// chiamare model.ConnectedClients.getConnectedClientsModel();		
-		connectedServersList.setModel(connectedClients.getConnectedClientsDefaultListModel());			
+		// chiamare model.ConnectedClients.getConnectedClientsModel();	
+		try {
+			
+			connectedServersList.setModel(connectedClients.getConnectedClientsDefaultListModel());			
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 	}
 	
 	// chiamato da model.server.ConnectedServers al quale chiede i dati da visualizzare
 	public final void updateConnectedServers() {
 		// chiamare model.ConnectedServers.getConnectedServersModel();
-		connectedServersList.setModel(connectedClients.getConnectedClientsDefaultListModel());			
+		try {
+			
+			connectedServersList.setModel(connectedClients.getConnectedClientsDefaultListModel());			
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 		
 	}
 
