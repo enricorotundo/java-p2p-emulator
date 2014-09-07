@@ -10,8 +10,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
-
-
+	
 public abstract class AbstractBasicFrame extends JFrame {
 	
 	/*
@@ -35,10 +34,6 @@ public abstract class AbstractBasicFrame extends JFrame {
 			thrown.printStackTrace();
 		}
 	}
-	
-	
-public abstract class AbstractBasicFrame extends JFrame {
-	
 	
 	private static final long serialVersionUID = 4673538213978317742L;
 	protected JPanel mainPanel;
