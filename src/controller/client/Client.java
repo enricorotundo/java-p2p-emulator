@@ -173,7 +173,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 		return result;
 	}
 	
-	private Vector<ClientInterface> getResourceOwners(final String paramSearchedResourceString) throws RemoteException {
+	private Vector<ClientInterface> askServerForResourceOwners(final String paramSearchedResourceString) throws RemoteException {
 		ServerInterface remoteServerInterface = null;
 		Vector<ClientInterface> owners = null;
 		
@@ -214,7 +214,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 											if (!checkResourcePossession(searchedResourceName, clientName)) {
 												gui.appendLogEntry("I havent " + searchedResourceName + ", asking " + serverName + " for owners.");
 												Vector<ClientInterface> owners = null;
-												owners = getResourceOwners(searchedResourceName);
+												owners = askServerForResourceOwners(searchedResourceName);
 												// if there are at least one resource owner
 												if (!owners.isEmpty()) {
 													gui.appendLogEntry("There are " + owners.size() + " owners of " + searchedResourceName);

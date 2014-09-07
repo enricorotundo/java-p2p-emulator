@@ -125,21 +125,45 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 	public String getServerUrl() throws RemoteException {
 		return Server.URL_STRING + serverNameString;
 	}
+	
+	private Vector<ClientInterface> getLocalResourceOwners(final String paramResourceName, final String clientCaller) {
+		final Vector<ClientInterface> searchedResourceOwners = new Vector<ClientInterface>();
+		
+		try {
+			// per ogni client connesso ad un particolare server della rete
+			for (final ClientInterface cli : connectedClients.getConnectedClients()) {
+				gui.appendLogEntry("Looking for " + paramResourceName + " in " + cli.getClientName() + "@" + serverNameString);
+				// chiedo al client se possiede la risorsa
+					if (cli.checkResourcePossession(paramResourceName, clientCaller)) {
+						gui.appendLogEntry(cli.getClientName() + "@" + serverNameString + " has " + paramResourceName);
+						searchedResourceOwners.add(cli);
+					}
+			}
+		} catch (RemoteException e) {
+			System.out.println("Error during my client asking for " + paramResourceName);
+		}		
+		
+		return searchedResourceOwners;
+	}
 
 	@Override
 	public Vector<ClientInterface> getResourceOwners(final String paramResourceName, final String clientCaller) throws RemoteException {
 		final Vector<ClientInterface> searchedResourceOwners = new Vector<ClientInterface>();
-		synchronized (serversMonitor) {	
-			for (final ServerInterface serverInterface : connectedServers.getConnectedServers()) {
-				for (final ClientInterface cli : serverInterface.getClients()) {
-					gui.appendLogEntry("Looking for " + paramResourceName + " in " + cli.getClientName() + "@" + serverInterface.getServerNameString());
-					if (cli.checkResourcePossession(paramResourceName, clientCaller)) {
-						gui.appendLogEntry(cli.getClientName() + "@" + serverInterface.getServerNameString() + " has " + paramResourceName);
-						searchedResourceOwners.add(cli);
-					}		
+		// cerco tra i client locali
+		searchedResourceOwners.addAll(getLocalResourceOwners(paramResourceName, clientCaller));
+			
+		synchronized (serversMonitor) {
+			// per ogni server connesso alla rete
+			for (final ServerInterface remoteServerInterface : connectedServers.getConnectedServers()) {
+					// escludo questo server dalla ricerca
+					if (!remoteServerInterface.getServerNameString().equals(serverNameString)) {
+						// chiamo il metodo remoto di un altro server
+						searchedResourceOwners.addAll(remoteServerInterface.getResourceOwners(paramResourceName, clientCaller));					
+					}
 				}
-			}
 		}
 		return searchedResourceOwners;
 	}
+	
+	
 }
