@@ -15,6 +15,7 @@ clean:
 	find . -name "*.class" -type f -delete
 
 start:
+	mkdir bin/
 	cd bin/ && rmiregistry &
 	sleep 2
 	xterm $(XTERM) -e "cd bin/ && java starter.ServerStarter Razorback1; read" &

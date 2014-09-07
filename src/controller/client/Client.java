@@ -68,7 +68,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 						}
 					}
 				} catch (MalformedURLException | RemoteException | NotBoundException e) {
-					e.printStackTrace();
+					System.out.println("Error with server.");
 				}
 			}
 		});
