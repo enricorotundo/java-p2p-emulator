@@ -82,7 +82,7 @@ public class ServerFrame extends AbstractBasicFrame implements Observer {
 					}
 				});
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println("connectedClientsList.setModel error");
 		}		
 	}
 	
@@ -99,7 +99,7 @@ public class ServerFrame extends AbstractBasicFrame implements Observer {
 					}
 				});
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println("connectedServersList.setModel error");
 		}	
 	}
 
