@@ -106,16 +106,22 @@ public class ClientFrame extends AbstractBasicFrame implements Observer {
 	}
 
 	private void updateDownloadList() {
-		synchronized (downloadsList) {
-			// chiamare model.ClientResources.getDonwloadsModel();
-			downloadsList.setModel(clientResources.getDefaultListModelDownloads());			
+		try {
+			synchronized (downloadsList) {
+				// chiamare model.ClientResources.getDonwloadsModel();
+				downloadsList.setModel(clientResources.getDefaultListModelDownloads());			
+			}			
+		} catch (Exception e) {
 		}
 	}
 	
 	private void updateResourceList() {
-		synchronized (resourcesList) {
-			// chiamare model.ClientResources.getResourcesModel();
-			resourcesList.setModel(clientResources.getDefaultListModelResources());			
+		try {
+			synchronized (resourcesList) {
+				// chiamare model.ClientResources.getResourcesModel();
+				resourcesList.setModel(clientResources.getDefaultListModelResources());			
+			}			
+		} catch (Exception e) {
 		}
 	}
 	
