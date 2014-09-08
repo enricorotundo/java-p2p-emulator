@@ -180,6 +180,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 	@Override
 	public Boolean checkResourcePossession(final String resourceToSearchFor, final String caller) throws RemoteException {
 		Boolean result = false;
+		if (!caller.equals(clientName)) {
 			try {
 				synchronized (resourceModel) {
 					result = resourceModel.containsResource(resourceToSearchFor);
@@ -187,7 +188,8 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 			} catch (NumberFormatException e) {
 				e.printStackTrace();
 			}
-			gui.appendLogEntry(caller + " contacted me for " + resourceToSearchFor);			
+			gui.appendLogEntry(caller + " contacted me for " + resourceToSearchFor);						
+		}
 		return result;
 	}
 	
