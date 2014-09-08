@@ -42,13 +42,14 @@ class ConnectionChecker extends Thread {
 				synchronized (connectionStatusUp) {
 					connectionStatusUp.set(false);
 				}
-				if (gui != null) {
-					gui.setConnectionButtonText("Connect");						
-					gui.appendLogEntry("Disconnected from " + serverName + " because seems offline.");
-				}
+					
+
 				
 				synchronized (this) {
 					try {
+						gui.setConnectionButtonText("Connect");						
+						gui.appendLogEntry("Disconnected from " + serverName + " because seems offline.");
+						
 						/*
 						 * viene risvegliato in connectToServer() cioe quando
 						 * il client si riconnette al server serverName
