@@ -38,9 +38,13 @@ class ConnectionChecker extends Thread {
 			} catch (final NotBoundException e) {
 				// qui il server a cui ero connesso non esiste piu'
 				synchronized (connectionStatusUp) {
-					gui.setConnectionButtonText("Connect");
+					if (gui != null) {
+						gui.setConnectionButtonText("Connect");						
+					}
 				}
-				gui.appendLogEntry("Disconnected from " + serverName + " because seems offline.");
+				if (gui != null) {
+					gui.appendLogEntry("Disconnected from " + serverName + " because seems offline.");
+				}
 				
 				synchronized (this) {
 					try {

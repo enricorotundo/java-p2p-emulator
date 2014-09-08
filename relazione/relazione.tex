@@ -31,7 +31,7 @@ BCOR5mm, % Binding correction
 \input{structure.tex} % Include the structure.tex file which specified the document structure and layout
 
 \usepackage{geometry}
-\geometry{margin=1.5in}
+\geometry{margin=1.5in, top=20mm}
 
 \hyphenation{Fortran hy-phen-ation} % Specify custom hyphenation points in words with dashes where you would like hyphenation to occur, or alternatively, don't put any dashes in a word to stop hyphenation altogether
 
@@ -78,71 +78,67 @@ BCOR5mm, % Binding correction
 %	ABSTRACT
 %----------------------------------------------------------------------------------------
 
-\section*{Sommario} % This section will not appear in the table of contents due to the star (\section*)
+\begin{abstract}
+% \section*{Sommario} % This section will not appear in the table of contents due to the star (\section*)
 	
 	Il presente documento rappresenta la relazione del progetto per l'esame ``Programazione Concorrente \& Distribuita''. Di seguito verranno illustrate e motivate le scelte progettuali effettuate, in particolare riguardo all'architettura e alla gestione della concorrenza e distribuzione.
+\end{abstract}
 
 %----------------------------------------------------------------------------------------
 %	Architettura
 %----------------------------------------------------------------------------------------
 
 \section{Architettura}
-
-	\subsection{Package}
 	
 	L'architettura implementata adersice al pattern architetturale MVC\footnote{\href{http://en.wikipedia.org/wiki/Model–view–controller}{http://en.wikipedia.org/wiki/Model–view–controller}}, si compone dei seguenti packages:
 
 		\begin{itemize}
 			\item controller: contiene le interfaccie e le classi dei controller di Client e Server con relative classi di ``servizio'' come i thread demoni.
-			\item model: rappresenta lo stato dell applicazione. Il Client avrà un model di tipo ClientResources che rende disponibili metodi per interfacciarsi alle risorse disponibili ed in download. Il Server avrà un oggetto di tipo ConnectedClients e uno di tipo ConnectedServers che rappresentano, per quel Server, lo stato dei client e server connessi. Le classi del model rendono disponibili dei metodi che generano i dati da visualizzare nell'interfaccia tramite oggetti di tipo AbstractListModel. Ogni modifica allo stato dei dati notifica l'accaduto alla view.
+			\item model: rappresenta lo stato dell applicazione. Le classi del model rendono disponibili dei metodi che generano i dati da visualizzare nell'interfaccia tramite oggetti di tipo AbstractListModel. Ogni modifica allo stato dei dati notifica l'accaduto alla view.
 			\item view: contiene le classi dell'interfaccia grafica di Client e Server. Riceve le notifiche di modifica dal model e aggiorna l'interfaccia.
 			\item starter: sono le classi che si occupano di creare gli oggetti Client e Server.
 		\end{itemize}
+
+	Tale architettura si ben presta allo sviluppo di applicazioni con interfaccia grafica, inoltre frammenta le responsabilità delle classi opportune consentendo una rapida comprensione del funzionamento del programma.
 	 
 	\subsection{Classi}
  		
- 		\subsubsection{controller}
+ 		\subsubsection{controller.client}
+ 				
+ 			L'interfaccia remota è \textbf{controller.client.ClientInterface}.
+ 			Implementazione dell'interfaccia è invece \textbf{controller.client.ClientInterface}, essa rappresenta un oggetto Client con relativa interfaccia grafica e modello dati. Il costruttore riceve dal \textbf{ClientStarter} il nome del server al quale connettersi, verrà ricercato all'indirizzo \textbf{\href{rmi://localhost/Server/}{rmi://localhost/Server/}}. Il client possiede un \textbf{controller.client.ConnectionChecker} che testa lo stato della connessione al server e aggiorna l'interfaccia in caso di disconnesione. Il client possiede un \textbf{controller.client.DownloadScheduler} che viene avviato ogni volta che viene richiesto il download di una risorsa. Questa classe mantiene una lista dei client possessori della risorsa da scaricare, si occupa di lanciare lo scaricamento delle singole parti con il livello di concorrenza richiesto dalla specifica. Il download di una singola parte viene affidato ad un \textbf{controller.client.PartDownloader}  
 
- 			\paragraph{controller.client.ClientInterface}
- 				Interfaccia remota del client.
- 			\paragraph{controller.client.Client}
- 				Implementazione dell'interfaccia \emph{controller.client.ClientInterface}. Crea un oggetto Client con relativa interfaccia grafica e modello dati. Il costruttore riceve dal \emph{ClientStarter} il nome del server al quale connettersi, verrà ricercato all'indirizzo \emph{rmi://localhost/Server/}. Il client possiede un \emph{controller.client.ConnectionChecker} che testa lo stato della connessione al server e aggiorna l'interfaccia in caso di disconnesione. Il client possiede un \
- 			\paragraph{controller.client.ConnectionChecker}
- 			\paragraph{controller.client.DownloadScheduler}
- 			\paragraph{controller.client.PartDownloader}
+ 		\subsubsection{controller.server}
 
+ 			L'iterfaccia remota del server è \textbf{controller.server.ServerInterface}. L'implementazione dell'interfaccia è \textbf{controller.server.Server}, essa rappresenta un oggetto Server con relativa interfaccia grafica e modello dati. Il costruttore riceve dal \textbf{ServerStarter} il nome che il server deve avere. Il server viene registrato all'indirizzo \textbf{\href{rmi://localhost/Server/nome_server}{rmi://localhost/Server/}} su cui rende pubblicamente disponibili i metodi remoti per la connessione/disonessione client, i metodi remoti chiave: \emph{getResourceOwners(String)} e \emph{getLocalResourceOwners(String)}.
+ 			Il primo viene invocato in prima battuta dal client C richiedente la risorsa, il server di appartenza S chiama quindi \emph{getLocalResourceOwners(String)} per ottenere le risorse dei client a lui registrati e, per ogni server registrato nella rete S', chiama \emph{getResourceOwners(String)} che risponderà con le risorse dei client resgitrati presso S'. In questo modo viene generato solo al bisogno l'elenco dei client possessori della risorsa richiesta. Questa soluzione è ottimale in quanto efficiente (evita il \emph{polling}\footnote{\href{http://en.wikipedia.org/wiki/Polling_(computer_science)}{http://en.wikipedia.org/wiki/Polling\_(computer\_science)}} che richiederebbe ripetutamente  lock sulle risorse disponibili) e consistente (assicurata dai client con lock sulle risorse disponibili, dai server con lock sulla lista costantemente aggiornata dei client connessi (\textbf{controller.server.ClientChecker})). Ogni oggetto Server gode di una lista di server contattabili mantenuta da \textbf{controller.server.ServerChecker}.
 
- 			\paragraph{controller.server.ServerInterface}
- 			\paragraph{controller.server.Server}
- 			\paragraph{controller.server.ClientChecker}
- 			\paragraph{controller.server.ServerChecker}
+ 		\subsubsection{model.client}
+ 			
+ 			Il Client avrà un model di tipo \textbf{model.client.ClientResources} che rende disponibili metodi per interfacciarsi alle risorse disponibili ed in download.
+ 			La classe \textbf{model.share.Resource} rappresenta la singola risorsa che possidono i client.
+ 			
+ 		\subsubsection{model.server}
 
- 		\subsubsection{model}
-
- 			\paragraph{model.client.ClientResources}
-
- 			\paragraph{model.server.ConnectedClients}
- 			\paragraph{model.server.ConnectedServers}
-
- 			\paragraph{model.share.Resource}
+ 			Il Server avrà un oggetto di tipo \textbf{model.server.ConnectedClients} e uno di tipo \textbf{model.server.ConnectedServers} che rappresentano, per quel Server, lo stato dei client e server connessi.
 
  		\subsubsection{view}
 
- 			\paragraph{view.AbstractBasicFrame}
- 			\paragraph{view.ClientFrame}
- 			\paragraph{view.ServerFrame}
-
-
- 		\subsubsection{starter}
-
- 			\paragraph{starter.ClientStarter}
- 			\paragraph{starter.ServerStarter}
+ 			La classe \textbf{view.AbstractBasicFrame} implementa un area di log sincronizzata. I metodi astratti sono lasciati alle diverse implementazioni tra client (\textbf{view.ClientFrame}) e server (\textbf{view.ServerFrame}) con pannelli e componenti diverse.
 
 %----------------------------------------------------------------------------------------
-%	Concorrenza \& distribuzione
+%	Concorrenza e distribuzione
 %----------------------------------------------------------------------------------------
 
-\section{Concorrenza \& distribuzione}
+\section{Concorrenza}
 
+	\subsection{Scaricamento risorsa}
+
+
+\section{Distribuzione}
+
+	\subsection{}
+
+	\subsection{}
 
 \end{document}
