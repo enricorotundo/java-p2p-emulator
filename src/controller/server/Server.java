@@ -77,40 +77,41 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 
 	@Override
 	public Integer clientConnect(ClientInterface clientToConnect) throws RemoteException {
-		System.out.println(clientToConnect.getClientName() + " try to connect");
+		gui.appendLogEntry(clientToConnect.getClientName() + " try to connect");
 		Integer functionResultInteger = -1;
 		synchronized (clientsMonitor) {
 			// check if client is already connected
 			if (!connectedClients.getConnectedClients().contains(clientToConnect)) {
 				connectedClients.addClient(clientToConnect);
 				functionResultInteger = 1;
+				gui.appendLogEntry(clientToConnect.getClientName() + " succesfully connected!");
 			}
 			// risveglia il thread clientChecker
 			clientsMonitor.notifyAll();
 		}
-		System.out.println(functionResultInteger);
 		return functionResultInteger;
 	}
 
 	@Override
 	public Integer clientDisconnect(ClientInterface clientToDisconnect) throws RemoteException {
-		System.out.println(clientToDisconnect.getClientName() + " try to disconnect");
+		gui.appendLogEntry(clientToDisconnect.getClientName() + " try to disconnect");
 		Integer functionResultInteger = -1;
 		synchronized (clientsMonitor) {
 			// check if client is connected
 			if (connectedClients.getConnectedClients().contains(clientToDisconnect)) {
 				connectedClients.removeClient(clientToDisconnect);
 				functionResultInteger = 0;
+				gui.appendLogEntry(clientToDisconnect.getClientName() + " succesfully disconnected!");
 			}
 			// risveglia il thread clientChecker
 			clientsMonitor.notifyAll();
 		}
-		System.out.println(functionResultInteger);
 		return functionResultInteger;
 	}
 
 	@Override
 	public void disconnect() throws NotBoundException, MalformedURLException, RemoteException {
+		gui.appendLogEntry("Disconneting from the rmiregistry... bye bye");
 		Naming.unbind(Server.URL_STRING + serverNameString);
 	}
 
@@ -135,6 +136,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 	@Override
 	public Vector<ClientInterface> getLocalResourceOwners(final String paramResourceName, final String clientCaller)  throws RemoteException {
 		final Vector<ClientInterface> searchedResourceOwners = new Vector<ClientInterface>();
+		gui.appendLogEntry("Looking for local clis that owns " + paramResourceName + ". Request made by " + clientCaller);
 		try {
 			
 			// per ogni client connesso ad un particolare server della rete
@@ -143,12 +145,22 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 				
 				// chiedo al client se possiede la risorsa
 				if (cli.checkResourcePossession(paramResourceName, clientCaller)) {
-					gui.appendLogEntry(cli.getClientName() + "@" + serverNameString + " has " + paramResourceName);
-					searchedResourceOwners.add(cli);
+					new Thread() {
+						public void run() {
+							synchronized (searchedResourceOwners) {
+								try {
+									gui.appendLogEntry(cli.getClientName() + "@" + serverNameString + " has " + paramResourceName);
+								} catch (RemoteException e) {
+									e.printStackTrace();
+								}
+								searchedResourceOwners.add(cli);								
+							}
+						}
+					}.start();
 				}
 			}
 		} catch (RemoteException e) {
-			System.out.println("Error during my client asking for " + paramResourceName);
+			gui.appendLogEntry("Error during local client asking for " + paramResourceName + ". Request made by " + clientCaller);
 		}		
 		return searchedResourceOwners;
 	}
@@ -161,6 +173,8 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 	@Override
 	public Vector<ClientInterface> getResourceOwners(final String paramResourceName, final String clientCaller) throws RemoteException {
 		final Vector<ClientInterface> searchedResourceOwners = new Vector<ClientInterface>();
+		gui.appendLogEntry("Looking for every network connected cli that owns " + paramResourceName + ". Request made by " + clientCaller);
+		
 		// cerco tra i client locali
 		searchedResourceOwners.addAll(getLocalResourceOwners(paramResourceName, clientCaller));
 		
@@ -170,9 +184,21 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 				
 				// escludo questo server dalla ricerca
 				if (!remoteServerInterface.getServerNameString().equals(serverNameString)) {
+					gui.appendLogEntry("Asking " + remoteServerInterface.getServerNameString() + " to ask his clients for " + paramResourceName + ". Request made by " + clientCaller);
 					
-					// chiamo il metodo remoto di un altro server che mi torna i suoi client possessori di paramResourceName
-					searchedResourceOwners.addAll(remoteServerInterface.getLocalResourceOwners(paramResourceName, clientCaller));					
+					new Thread() {
+						public void run() {
+							synchronized (searchedResourceOwners) {
+								// chiamo il metodo remoto di un altro server che mi torna i suoi client possessori di paramResourceName
+								try {
+									searchedResourceOwners.addAll(remoteServerInterface.getLocalResourceOwners(paramResourceName, clientCaller + "@" + serverNameString));
+								} catch (RemoteException e) {
+									e.printStackTrace();
+								}													
+							}
+						}
+					}.start();
+					
 				}
 			}
 		}

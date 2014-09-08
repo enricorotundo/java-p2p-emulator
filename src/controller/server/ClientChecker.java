@@ -29,13 +29,15 @@ public class ClientChecker extends Thread {
 							// throws a RemoteException if client is unreacheable
 							client.test();
 						} catch (final RemoteException e) {
+							System.out.println("One client seems disconnected, i kick it.");
 							connectedClients.removeClient(client);
 						}
 					}
 					/*
 					 * risvegliato da clientConnect e clientDisconnect in Client
 					 */
-					clientsMonitor.wait();	
+					clientsMonitor.wait();
+					System.out.println("ClientChecker waked up!");
 				} catch (final InterruptedException e) {
 					e.printStackTrace();
 				}

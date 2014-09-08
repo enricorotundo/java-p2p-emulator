@@ -48,20 +48,24 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 		// quando chiudo il client mi disconnetto dal server
 		final ClientInterface thisClientInterface = this;
 		Runtime.getRuntime().addShutdownHook(new Thread() {
-		@Override
-		public void run() {
-				try {
-					synchronized (connectionStatusUp) {
-						// mi disconnetto solo se ero connesso
-						if (connectionStatusUp.get() == true) {
-							final ServerInterface remoteServerInterface = (ServerInterface) Naming.lookup(Server.URL_STRING + serverName);
-							remoteServerInterface.clientDisconnect(thisClientInterface);							
+			@Override
+			public void run() {
+					try {
+						synchronized (connectionStatusUp) {
+							// mi disconnetto solo se ero connesso
+							if (connectionStatusUp.get() == true) {
+								final ServerInterface remoteServerInterface = (ServerInterface) Naming.lookup(Server.URL_STRING + serverName);
+								// la gui potrebbe non essere stata creata
+								if (gui != null) {
+									gui.appendLogEntry("Asking " + remoteServerInterface.getServerNameString() + " to diconnect me!");									
+								}
+								remoteServerInterface.clientDisconnect(thisClientInterface);							
+							}
 						}
+					} catch (MalformedURLException | RemoteException | NotBoundException e) {
+						System.out.println("Error with server.");
 					}
-				} catch (MalformedURLException | RemoteException | NotBoundException e) {
-					System.out.println("Error with server.");
 				}
-			}
 		});
 		
 		// avvio il thread che controlla lo status della connessione tra me Client e il mio Server
@@ -73,9 +77,12 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 		SwingUtilities.invokeLater(new Runnable() {
 		    public void run() {
 		    	gui = new ClientFrame(clientName + "@" + serverName, resourceModel, thisClient);
-				// dico al MODEL chi e' il suo Observer
+				
+		    	// dico al MODEL chi e' il suo Observer
 				resourceModel.addObserver(gui);
-		        gui.setVisible(true);
+		        
+				gui.setVisible(true);
+		        
 		        // mi connetto subito al server 
 				try {
 					connectToServer();
@@ -116,7 +123,10 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 		return true;
 	}
 
-	// lista risorse possedute dal client
+	/**
+	 *  lista risorse possedute dal client(non-Javadoc)
+	 * @see controller.client.ClientInterface#getResourceList()
+	 */
 	@Override
 	public Vector<String[]> getResourceList() throws RemoteException {
 		Vector<String[]> resourceList = new Vector<String[]>();
@@ -132,6 +142,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 			@Override
 			public void run() {
 				try {
+					gui.appendLogEntry("Try to connect to " + serverName + " ...");
 					// cerco il server al quale devo connettermi
 					final ServerInterface remoteServerInterface = (ServerInterface) Naming.lookup(Server.URL_STRING + serverName);
 					synchronized (connectionStatusUp) {
@@ -139,6 +150,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 							// start connection
 							if (remoteServerInterface.clientConnect(thisClientInterface) == 1) {
 								gui.setConnectionButtonText("Disconnect");
+								gui.appendLogEntry("Succesfully connected to " + serverName);
 								connectionStatusUp.set(true);
 								// risveglio il thread che controlla la connessione Client-Server
 								synchronized (connectionChecker) {
@@ -151,6 +163,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 							// start disconnection
 							if (remoteServerInterface.clientDisconnect(thisClientInterface) == 0) {
 								gui.setConnectionButtonText("Connect");
+								gui.appendLogEntry("Succesfully disconnected to " + serverName);
 								connectionStatusUp.set(false);
 							} else { // disconnection failed
 								gui.appendLogEntry("Problems disconnecting to " + serverName);
@@ -188,11 +201,12 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 			e.printStackTrace();
 		}
 		
+		gui.appendLogEntry("Asking " + serverName + " for " + paramSearchedResourceString + " owners...");
 		if (remoteServerInterface != null) {
 			try {
 				owners = remoteServerInterface.getResourceOwners(paramSearchedResourceString, clientName);
 			} catch (RemoteException e) {
-				e.printStackTrace();
+				System.out.println("Server error");
 			}			
 		} else {
 			owners = new Vector<ClientInterface>();
@@ -217,9 +231,9 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 									try {
 										if (currentDownloadsNumber.get() <= 0) {
 											if (!checkResourcePossession(searchedResourceName, clientName)) {
-												gui.appendLogEntry("I havent " + searchedResourceName + ", asking " + serverName + " for owners.");
-												Vector<ClientInterface> owners = null;
-												owners = askServerForResourceOwners(searchedResourceName);
+												gui.appendLogEntry("I havent " + searchedResourceName + "... asking " + serverName + " for owners.");
+												Vector<ClientInterface> owners = askServerForResourceOwners(searchedResourceName);
+												
 												// if there are at least one resource owner
 												if (!owners.isEmpty()) {
 													gui.appendLogEntry("There are " + owners.size() + " owners of " + searchedResourceName);
@@ -227,7 +241,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 													// stampo i possessori della risorsa
 													for (ClientInterface clientInterface : owners) {
 														try {
-															gui.appendLogEntry(clientInterface.getClientName() + " owns " + searchedResourceName);
+															gui.appendLogEntry(clientInterface.getClientName() + "@" + clientInterface.getConnectedServer() + " owns " + searchedResourceName);
 														} catch (RemoteException e) {
 															e.printStackTrace();
 														}
@@ -237,7 +251,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 													resourceModel.addDownloadingResource(searchedResourceName);
 													
 													// risveglio il thread DownloadScheduler in wait sul MODEL
-													synchronized (resourceModel) {														
+													synchronized (resourceModel) {	
 														resourceModel.notifyAll();
 													}
 													
