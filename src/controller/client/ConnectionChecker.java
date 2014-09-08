@@ -29,7 +29,7 @@ class ConnectionChecker extends Thread {
 			try {
 				sleep(100);
 				synchronized (connectionStatusUp) {
-					System.out.println("ConnectionChecker running");
+
 					// controllo lo stato della connessione solo se ero/sono connesso
 					if (connectionStatusUp.get() == true) {
 						ServerInterface remoteServerInterface = (ServerInterface) Naming.lookup(Server.URL_STRING + serverName);	
