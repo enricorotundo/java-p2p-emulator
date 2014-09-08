@@ -146,7 +146,7 @@ BCOR5mm, % Binding correction
 
 	Le parti di risorsa sono scambiate esclusivamente tra client, i server non detengono risorse e non fanno da tramite durante gli scambi; questo è facilmente verificabile chiudendo i server durante uno scambio parti, si noterà che lo scambio proseguirà indistrubato. Le comunicazioni server-client e server-server riguardano solamente riferimenti remoti a oggetti client e/o server, in base alle necessità.
 	I riferimenti remoti ai client non vengono inseriti in regisrti pubblici, questo accade solamente per i server.
-	La robustezza viene garantita dalla gestione dei fallimenti delle entità del sistema che si presentano sotto forma di eccezioni, tali occorrenze vengono stampate nell'area di log della gui. I messaggi degli eventi lanciati dai thread demoni vengono generalmente inviati a \emph{System.out}.
+	La robustezza viene garantita dalla gestione dei fallimenti delle entità del sistema che si presentano sotto forma di eccezioni, tali occorrenze vengono stampate nell'area di log della gui. I messaggi degli eventi lanciati dai thread demoni vengono generalmente inviati a \emph{System.out}. \textbf{NB:} se un client che sta inviando una parte si disconette, il ricevente visualizza il messaggio d'errore in \emph{System.out} e non nella log area della gui.
 
 %----------------------------------------------------------------------------------------
 %	Procedura
