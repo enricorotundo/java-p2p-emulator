@@ -93,25 +93,25 @@ BCOR5mm, % Binding correction
 	L'architettura implementata adersice al pattern architetturale MVC\footnote{\href{http://en.wikipedia.org/wiki/Model–view–controller}{http://en.wikipedia.org/wiki/Model–view–controller}}, si compone dei seguenti packages:
 
 		\begin{itemize}
-			\item controller: contiene le interfaccie e le classi dei controller di Client e Server con relative classi di ``servizio'' come i thread demoni.
-			\item model: rappresenta lo stato dell applicazione. Le classi del model rendono disponibili dei metodi che generano i dati da visualizzare nell'interfaccia tramite oggetti di tipo AbstractListModel. Ogni modifica allo stato dei dati notifica l'accaduto alla view.
-			\item view: contiene le classi dell'interfaccia grafica di Client e Server. Riceve le notifiche di modifica dal model e aggiorna l'interfaccia.
-			\item starter: sono le classi che si occupano di creare gli oggetti Client e Server.
+			\item \textbf{controller:} contiene le interfaccie e le classi dei controller di Client e Server con relative classi di ``servizio'' come i thread demoni.
+			\item \textbf{model:} rappresenta lo stato dell applicazione. Le classi del model rendono disponibili dei metodi che generano i dati da visualizzare nell'interfaccia tramite oggetti di tipo AbstractListModel. Ogni modifica allo stato dei dati notifica l'accaduto alla view.
+			\item \textbf{view:} contiene le classi dell'interfaccia grafica di Client e Server. Riceve le notifiche di modifica dal model e aggiorna l'interfaccia.
+			\item \textbf{starter:} sono le classi che si occupano di creare gli oggetti Client e Server.
 		\end{itemize}
 
-	Tale architettura si ben presta allo sviluppo di applicazioni con interfaccia grafica, inoltre frammenta le responsabilità delle classi opportune consentendo una rapida comprensione del funzionamento del programma.
+	Tale architettura si ben presta allo sviluppo di applicazioni con interfaccia grafica, separa nettamente le responsabilità delle classi consentendo una rapida comprensione del funzionamento e dell architettura.
 	 
 	\subsection{Classi}
  		
  		\subsubsection{controller.client}
  				
  			L'interfaccia remota è \textbf{controller.client.ClientInterface}.
- 			Implementazione dell'interfaccia è invece \textbf{controller.client.ClientInterface}, essa rappresenta un oggetto Client con relativa interfaccia grafica e modello dati. Il costruttore riceve dal \textbf{ClientStarter} il nome del server al quale connettersi, verrà ricercato all'indirizzo \textbf{\href{rmi://localhost/Server/}{rmi://localhost/Server/}}. Il client possiede un \textbf{controller.client.ConnectionChecker} che testa lo stato della connessione al server e aggiorna l'interfaccia in caso di disconnesione. Il client possiede un \textbf{controller.client.DownloadScheduler} che viene avviato ogni volta che viene richiesto il download di una risorsa. Questa classe mantiene una lista dei client possessori della risorsa da scaricare, si occupa di lanciare lo scaricamento delle singole parti con il livello di concorrenza richiesto dalla specifica. Il download di una singola parte viene affidato ad un \textbf{controller.client.PartDownloader}  
+ 			Implementazione dell'interfaccia è invece \textbf{controller.client.Client}, essa rappresenta un oggetto Client con i riferimenti a interfaccia grafica e modello dati. Il costruttore riceve dal \textbf{ClientStarter} il nome del server al quale connettersi che verrà ricercato tra quelli disponibili in \textbf{\href{rmi://localhost/Server/}{rmi://localhost/Server/}}. Il client possiede un \textbf{controller.client.ConnectionChecker} che testa lo stato della connessione al server e aggiorna l'interfaccia in caso di disconnessione. Il client possiede un \textbf{controller.client.DownloadScheduler} che viene avviato ogni volta che viene richiesto il download di una risorsa. Questa classe mantiene una lista dei client possessori della risorsa da scaricare, si occupa di lanciare lo scaricamento delle singole parti con il livello di concorrenza richiesto dalla specifica. Il download di una singola parte viene affidato ad un \textbf{controller.client.PartDownloader}.
 
  		\subsubsection{controller.server}
 
- 			L'iterfaccia remota del server è \textbf{controller.server.ServerInterface}. L'implementazione dell'interfaccia è \textbf{controller.server.Server}, essa rappresenta un oggetto Server con relativa interfaccia grafica e modello dati. Il costruttore riceve dal \textbf{ServerStarter} il nome che il server deve avere. Il server viene registrato all'indirizzo \textbf{\href{rmi://localhost/Server/nome_server}{rmi://localhost/Server/}} su cui rende pubblicamente disponibili i metodi remoti per la connessione/disonessione client, i metodi remoti chiave: \emph{getResourceOwners(String)} e \emph{getLocalResourceOwners(String)}.
- 			Il primo viene invocato in prima battuta dal client C richiedente la risorsa, il server di appartenza S chiama quindi \emph{getLocalResourceOwners(String)} per ottenere le risorse dei client a lui registrati e, per ogni server registrato nella rete S', chiama \emph{getResourceOwners(String)} che risponderà con le risorse dei client resgitrati presso S'. In questo modo viene generato solo al bisogno l'elenco dei client possessori della risorsa richiesta. Questa soluzione è ottimale in quanto efficiente (evita il \emph{polling}\footnote{\href{http://en.wikipedia.org/wiki/Polling_(computer_science)}{http://en.wikipedia.org/wiki/Polling\_(computer\_science)}} che richiederebbe ripetutamente  lock sulle risorse disponibili) e consistente (assicurata dai client con lock sulle risorse disponibili, dai server con lock sulla lista costantemente aggiornata dei client connessi (\textbf{controller.server.ClientChecker})). Ogni oggetto Server gode di una lista di server contattabili mantenuta da \textbf{controller.server.ServerChecker}.
+ 			L'iterfaccia remota del server è \textbf{controller.server.ServerInterface}. L'implementazione dell'interfaccia è \textbf{controller.server.Server}, essa rappresenta un oggetto Server con riferimenti a interfaccia grafica e modello dati. Il costruttore riceve dal \textbf{ServerStarter} il nome che il server deve avere. Il server viene registrato all'indirizzo \textbf{\href{rmi://localhost/Server/nome_server}{rmi://localhost/Server/}} su cui rende pubblicamente disponibili sia i metodi remoti per la connessione/disonessione di client, sia i metodi remoti \emph{getResourceOwners(String)} e \emph{getLocalResourceOwners(String)}.
+ 			Il primo viene invocato in prima battuta dal client C richiedente la risorsa, il server di appartenza S chiama quindi \emph{getLocalResourceOwners(String)} per ottenere le risorse dei client a lui registrati e, per ogni server registrato nella rete S', chiama \emph{getResourceOwners(String)} che risponderà con le risorse dei client registrati presso S'. In questo modo viene generato al bisogno l'elenco dei client possessori della risorsa richiesta. Questa soluzione è ottimale in quanto efficiente (evita il \emph{polling}\footnote{\href{http://en.wikipedia.org/wiki/Polling_(computer_science)}{http://en.wikipedia.org/wiki/Polling\_(computer\_science)}} che richiederebbe ripetutamente lock su risorse remote del client) e consistente (assicurata dai client con lock sulle risorse disponibili, dai server con lock sulla lista costantemente aggiornata dei client connessi (\textbf{controller.server.ClientChecker})). Ogni oggetto Server gode di una lista di server contattabili mantenuta da \textbf{controller.server.ServerChecker}.
 
  		\subsubsection{model.client}
  			
@@ -127,21 +127,45 @@ BCOR5mm, % Binding correction
  			La classe \textbf{view.AbstractBasicFrame} implementa un area di log sincronizzata. I metodi astratti sono lasciati alle diverse implementazioni tra client (\textbf{view.ClientFrame}) e server (\textbf{view.ServerFrame}) con pannelli e componenti diverse.
 
 %----------------------------------------------------------------------------------------
-%	Concorrenza e distribuzione
+%	Concorrenza
 %----------------------------------------------------------------------------------------
 
 \section{Concorrenza}
 
 	\subsection{Scaricamento risorsa}
-	Il client scarica al più una risorsa alla volta grazie al controllo effettuato in \emph{performSearch} di Client controller. La fornitura concorrente di parti di risorse possedute è garantita lato server dalla libreria RMI e dai lock sui dati a livello del model. Il download di una parte è simulato dalla una \emph{sleep} nel metodo client remoto \textit{download(string)} per un tempo pari a \textbf{Client.UPLOAD\_TIME}. Il client richiedente mantiene una lista di client dai quali sta scaricando in modo da poter controllare di scaricare al più da un client. 
+	Il client scarica al più una risorsa alla volta grazie al controllo effettuato in \emph{performSearch()} di Client controller. La fornitura concorrente di parti di risorse possedute è consistente grazie ai lock sui dati a livello del server model. Il download di una parte è simulato dalla una \emph{sleep} nel metodo client remoto \textit{download(string)} per un tempo pari a \textbf{Client.UPLOAD\_TIME}. Il client richiedente mantiene una lista di client dai quali sta scaricando in modo da poter controllare di scaricare contemporaneamente al più da un client. 
 
 	\subsection{Comunicazioni}
 	Le richieste di connessione, disconnessione e ricerca possesori risorse sono tutte protette da sincronizzazione, le prime due sull'oggetto \textit{clientsMonitor} mentre l'ultima su \textit{serversMonitor} a livello di controller, sono ulteriormente sincronizzate a livello model sui rispettivi Vector.
+
+%----------------------------------------------------------------------------------------
+%	Distribuzione
+%----------------------------------------------------------------------------------------
 
 \section{Distribuzione}
 
 	Le parti di risorsa sono scambiate esclusivamente tra client, i server non detengono risorse e non fanno da tramite durante gli scambi; questo è facilmente verificabile chiudendo i server durante uno scambio parti, si noterà che lo scambio proseguirà indistrubato. Le comunicazioni server-client e server-server riguardano solamente riferimenti remoti a oggetti client e/o server, in base alle necessità.
 	I riferimenti remoti ai client non vengono inseriti in regisrti pubblici, questo accade solamente per i server.
-	La robustezza viene garantita dalla gestione dei fallimenti delle entità del sistema che si presenta sotto forma di eccezioni, tali occorrenze vengono stampate nell'area di log della gui. I messaggi degli eventi lanciati dai thread demoni di supporto vengono generalmente inviati a \emph{System.out}.
+	La robustezza viene garantita dalla gestione dei fallimenti delle entità del sistema che si presentano sotto forma di eccezioni, tali occorrenze vengono stampate nell'area di log della gui. I messaggi degli eventi lanciati dai thread demoni vengono generalmente inviati a \emph{System.out}.
+
+%----------------------------------------------------------------------------------------
+%	Procedura
+%----------------------------------------------------------------------------------------
+
+\section{Procedura per l'utilizzo dell'applicativo}
+	
+	Di seguito vengono elencati i passi per poter avviare l'intero applicativo ed un esempio d'uso. 
+	Per avviare il programma eseguire sempre dalla root la seguente sequenza di comandi da terminale:
+
+		\begin{enumerate}
+			\item  \textbf{make clean}
+			\item  \textbf{make}
+			\item  \textbf{make stop}
+			\item  \textbf{make start}
+		\end{enumerate}
+
+	A questo punto l'utente visualizzerà le interfaccie dei client e dei server. I client, all'avvio si connettono automaticamente al server prescelto, se questo non dovesse essere disponibile verrà visualizzato un messaggio; sarà possibile riconettersi traite l'apposito bottone.
+	Per scaricare un risorsa è necessario e sufficiente compilare il campo testuale sito nell'interfaccia del client e cliccare con il mouse sul bottone di ricerca. Il campo testuale è di tipo \emph{JFormattedTextField} ed è configurato per accettare stringhe di lunghezza 3 validate secondo la maschera ``\textbf{U \#}''  di tipo  MaskFormatter\footnote{\href{http://docs.oracle.com/javase/7/docs/api/javax/swing/text/MaskFormatter.html}{http://docs.oracle.com/javase/7/docs/api/javax/swing/text/MaskFormatter.html}}, U equivale a [A-Z], \# equivale a [0-9].
+	Il controller client controlla che il client sia connesso, che non ci sia una risorsa in download, che la risorsa non sia in possesso al client, che vi sia almeno un solo possessore della risorsa connesso al network. Se tutti questi controlli restituiscono esito positivo viene avviato il thread che gestisce il download della risorsa, è possibile monitorare l'andamento del download tramite la lista sulla destra. Una volta completato il download la risorsa viene aggiunta tra quelle disponibili. Se durante un download tutti i client possessori dovessero risultare irraggiungibili, dopo un paio di secondi verrà annullato il download.
 
 \end{document}
