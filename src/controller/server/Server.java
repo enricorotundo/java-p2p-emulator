@@ -144,7 +144,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 				gui.appendLogEntry("Looking for " + paramResourceName + " in " + cli.getClientName() + "@" + serverNameString);
 				
 				// chiedo al client se possiede la risorsa
-				if (cli.checkResourcePossession(paramResourceName, clientCaller)) {
+				if (cli.checkResourcePossession(paramResourceName, clientCaller + "@" + serverNameString)) {
 					
 								try {
 									gui.appendLogEntry(cli.getClientName() + "@" + serverNameString + " has " + paramResourceName);
@@ -183,7 +183,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 					
 								// chiamo il metodo remoto di un altro server che mi torna i suoi client possessori di paramResourceName
 								try {
-									searchedResourceOwners.addAll(remoteServerInterface.getLocalResourceOwners(paramResourceName, clientCaller + "@" + serverNameString));
+									searchedResourceOwners.addAll(remoteServerInterface.getLocalResourceOwners(paramResourceName, serverNameString));
 								} catch (RemoteException e) {
 									e.printStackTrace();
 								}													
