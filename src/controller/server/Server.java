@@ -183,7 +183,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 					
 								// chiamo il metodo remoto di un altro server che mi torna i suoi client possessori di paramResourceName
 								try {
-									searchedResourceOwners.addAll(remoteServerInterface.getLocalResourceOwners(paramResourceName, serverNameString));
+									searchedResourceOwners.addAll(remoteServerInterface.getLocalResourceOwners(paramResourceName, clientCaller));
 								} catch (RemoteException e) {
 									e.printStackTrace();
 								}													
