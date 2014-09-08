@@ -14,6 +14,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 import javax.swing.text.MaskFormatter;
 
 import model.client.ClientResources;
@@ -106,17 +107,35 @@ public class ClientFrame extends AbstractBasicFrame implements Observer {
 	}
 
 	private void updateDownloadList() {
-		synchronized (downloadsList) {
-			// chiamare model.ClientResources.getDonwloadsModel();
-			downloadsList.setModel(clientResources.getDefaultListModelDownloads());			
-		}
+		try {
+			SwingUtilities.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+					synchronized (downloadsList) {
+						// chiamare model.ClientResources.getDonwloadsModel();
+						downloadsList.setModel(clientResources.getDefaultListModelDownloads());			
+					}
+				}
+			});
+		} catch (Exception e) {
+			System.out.println("downloadsList.setModel error");
+		}		
 	}
 	
 	private void updateResourceList() {
-		synchronized (resourcesList) {
-			// chiamare model.ClientResources.getResourcesModel();
-			resourcesList.setModel(clientResources.getDefaultListModelResources());			
-		}
+		try {
+			SwingUtilities.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+					synchronized (resourcesList) {
+						// chiamare model.ClientResources.getResourcesModel();
+						resourcesList.setModel(clientResources.getDefaultListModelResources());		
+					}
+				}
+			});
+		} catch (Exception e) {
+			System.out.println("resourcesList.setModel error");
+		}		
 	}
 	
 	// invocato quando il MODEL viene modificato -> aggiorna la VIEW
