@@ -188,7 +188,11 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 			} catch (NumberFormatException e) {
 				e.printStackTrace();
 			}
-			gui.appendLogEntry(caller + " contacted me for " + resourceToSearchFor);						
+			gui.appendLogEntry(caller + " contacted me for " + resourceToSearchFor);
+			
+			if (result == false) {
+				gui.appendLogEntry("I replied that i havent " + resourceToSearchFor);
+			}
 		}
 		return result;
 	}
