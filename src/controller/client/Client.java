@@ -292,7 +292,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 				}
 			}
 		} catch (RemoteException e1) {
-			e1.printStackTrace();
+			System.out.println("Remote error");
 		}
 		
 	}

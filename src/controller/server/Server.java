@@ -145,18 +145,13 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 				
 				// chiedo al client se possiede la risorsa
 				if (cli.checkResourcePossession(paramResourceName, clientCaller)) {
-					new Thread() {
-						public void run() {
-							synchronized (searchedResourceOwners) {
+					
 								try {
 									gui.appendLogEntry(cli.getClientName() + "@" + serverNameString + " has " + paramResourceName);
 								} catch (RemoteException e) {
 									e.printStackTrace();
 								}
 								searchedResourceOwners.add(cli);								
-							}
-						}
-					}.start();
 				}
 			}
 		} catch (RemoteException e) {
@@ -186,19 +181,12 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 				if (!remoteServerInterface.getServerNameString().equals(serverNameString)) {
 					gui.appendLogEntry("Asking " + remoteServerInterface.getServerNameString() + " to ask his clients for " + paramResourceName + ". Request made by " + clientCaller);
 					
-					new Thread() {
-						public void run() {
-							synchronized (searchedResourceOwners) {
 								// chiamo il metodo remoto di un altro server che mi torna i suoi client possessori di paramResourceName
 								try {
 									searchedResourceOwners.addAll(remoteServerInterface.getLocalResourceOwners(paramResourceName, clientCaller + "@" + serverNameString));
 								} catch (RemoteException e) {
 									e.printStackTrace();
 								}													
-							}
-						}
-					}.start();
-					
 				}
 			}
 		}
