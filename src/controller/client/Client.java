@@ -190,7 +190,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 			}
 			gui.appendLogEntry(caller + " contacted me for " + resourceToSearchFor);
 			
-			if (result == false) {
+			if (result.booleanValue() == false) {
 				gui.appendLogEntry("I replied that i havent " + resourceToSearchFor);
 			}
 		}
