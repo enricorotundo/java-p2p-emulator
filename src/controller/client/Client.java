@@ -37,7 +37,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 	private final Integer maxDownloadCapacity;
 	private final ClientResources resourceModel; // MODEL
 	private ClientFrame gui; // VIEW
-	private final ConnectionChecker connectionChecker;
+	private ConnectionChecker connectionChecker;
 	
 	public Client(final String clientName, final String serverName, int maxDownloadCapacity, final ClientResources argResources) throws RemoteException {
 		this.clientName = clientName;
@@ -85,12 +85,13 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 				} catch (RemoteException e) {
 					System.out.println("Connection to server error.");
 				}
+				
+				// avvio il thread che controlla lo status della connessione tra me Client e il mio Server
+				connectionChecker = new ConnectionChecker(connectionStatusUp, serverName, gui);
+				connectionChecker.start();
 		    }
 		});
 		
-		// avvio il thread che controlla lo status della connessione tra me Client e il mio Server
-		connectionChecker = new ConnectionChecker(connectionStatusUp, serverName, gui);
-		connectionChecker.start();
 	}
 
 	@Override
