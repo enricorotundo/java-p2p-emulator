@@ -108,6 +108,7 @@ public class ClientFrame extends AbstractBasicFrame implements Observer {
 
 	private void updateDownloadList() {
 		try {
+<<<<<<< HEAD
 			SwingUtilities.invokeAndWait(new Runnable() {
 				@Override
 				public void run() {
@@ -120,10 +121,19 @@ public class ClientFrame extends AbstractBasicFrame implements Observer {
 		} catch (Exception e) {
 			System.out.println("downloadsList.setModel error");
 		}		
+=======
+			synchronized (downloadsList) {
+				// chiamare model.ClientResources.getDonwloadsModel();
+				downloadsList.setModel(clientResources.getDefaultListModelDownloads());			
+			}			
+		} catch (Exception e) {
+		}
+>>>>>>> 697ab90e8531d5f428fe8422245d088131bc63b2
 	}
 	
 	private void updateResourceList() {
 		try {
+<<<<<<< HEAD
 			SwingUtilities.invokeAndWait(new Runnable() {
 				@Override
 				public void run() {
@@ -136,6 +146,14 @@ public class ClientFrame extends AbstractBasicFrame implements Observer {
 		} catch (Exception e) {
 			System.out.println("resourcesList.setModel error");
 		}		
+=======
+			synchronized (resourcesList) {
+				// chiamare model.ClientResources.getResourcesModel();
+				resourcesList.setModel(clientResources.getDefaultListModelResources());			
+			}			
+		} catch (Exception e) {
+		}
+>>>>>>> 697ab90e8531d5f428fe8422245d088131bc63b2
 	}
 	
 	// invocato quando il MODEL viene modificato -> aggiorna la VIEW
