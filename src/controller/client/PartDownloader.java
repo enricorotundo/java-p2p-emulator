@@ -43,7 +43,11 @@ public class PartDownloader extends Thread {
 		} catch (RemoteException e) {
 			// c'e stato un problema con lo scaricamento della parte
 			resourceModel.setPartStatus(partToDownloadIndex, 2);  // segno la parte come fallito
-			System.out.println("WARNING: client disconnected!");
+			System.out.println("*********************************");
+			System.out.println("*                               *");
+			System.out.println("* WARNING: client disconnected! *");
+			System.out.println("*                               *");
+			System.out.println("*********************************");
 			
 			// lascio il tempo all utente di accorgersi quale parte ha fallito
 			try {
