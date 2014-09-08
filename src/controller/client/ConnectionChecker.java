@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import view.ClientFrame;
 import controller.server.Server;
+import controller.server.ServerInterface;
 
 class ConnectionChecker extends Thread {
 	
@@ -30,7 +31,8 @@ class ConnectionChecker extends Thread {
 				synchronized (connectionStatusUp) {
 					// controllo lo stato della connessione solo se ero/sono connesso
 					if (connectionStatusUp.get() == true) {
-						Naming.lookup(Server.URL_STRING + serverName);	
+						ServerInterface remoteServerInterface = (ServerInterface) Naming.lookup(Server.URL_STRING + serverName);	
+						remoteServerInterface.getServerUrl();
 					}						
 				}
 			} catch (MalformedURLException | RemoteException | InterruptedException e) {
@@ -38,11 +40,10 @@ class ConnectionChecker extends Thread {
 			} catch (final NotBoundException e) {
 				// qui il server a cui ero connesso non esiste piu'
 				synchronized (connectionStatusUp) {
-					if (gui != null) {
-						gui.setConnectionButtonText("Connect");						
-					}
+					connectionStatusUp.set(false);
 				}
 				if (gui != null) {
+					gui.setConnectionButtonText("Connect");						
 					gui.appendLogEntry("Disconnected from " + serverName + " because seems offline.");
 				}
 				
