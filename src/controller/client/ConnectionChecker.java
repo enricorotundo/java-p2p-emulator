@@ -29,6 +29,7 @@ class ConnectionChecker extends Thread {
 			try {
 				sleep(100);
 				synchronized (connectionStatusUp) {
+					
 					// controllo lo stato della connessione solo se ero/sono connesso
 					if (connectionStatusUp.get() == true) {
 						ServerInterface remoteServerInterface = (ServerInterface) Naming.lookup(Server.URL_STRING + serverName);	
@@ -38,6 +39,7 @@ class ConnectionChecker extends Thread {
 			} catch (MalformedURLException | RemoteException | InterruptedException e) {
 				e.printStackTrace();
 			} catch (final NotBoundException e) {
+				
 				// qui il server a cui ero connesso non esiste piu'
 				synchronized (connectionStatusUp) {
 					connectionStatusUp.set(false);

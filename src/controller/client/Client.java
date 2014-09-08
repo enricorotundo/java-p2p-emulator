@@ -68,10 +68,6 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 				}
 		});
 		
-		// avvio il thread che controlla lo status della connessione tra me Client e il mio Server
-		connectionChecker = new ConnectionChecker(connectionStatusUp, serverName, gui);
-		connectionChecker.start();
-		
 		final Client thisClient = this;
 		// creo mostra gui
 		SwingUtilities.invokeLater(new Runnable() {
@@ -91,6 +87,10 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 				}
 		    }
 		});
+		
+		// avvio il thread che controlla lo status della connessione tra me Client e il mio Server
+		connectionChecker = new ConnectionChecker(connectionStatusUp, serverName, gui);
+		connectionChecker.start();
 	}
 
 	@Override
