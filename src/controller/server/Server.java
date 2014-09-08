@@ -171,7 +171,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 		gui.appendLogEntry("Looking for every network connected cli that owns " + paramResourceName + ". Request made by " + clientCaller);
 		
 		// cerco tra i client locali
-		searchedResourceOwners.addAll(getLocalResourceOwners(paramResourceName, clientCaller));
+		searchedResourceOwners.addAll(getLocalResourceOwners(paramResourceName, serverNameString));
 		
 		synchronized (serversMonitor) {
 			// per ogni server connesso alla rete
@@ -183,7 +183,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 					
 								// chiamo il metodo remoto di un altro server che mi torna i suoi client possessori di paramResourceName
 								try {
-									searchedResourceOwners.addAll(remoteServerInterface.getLocalResourceOwners(paramResourceName, clientCaller));
+									searchedResourceOwners.addAll(remoteServerInterface.getLocalResourceOwners(paramResourceName, serverNameString));
 								} catch (RemoteException e) {
 									e.printStackTrace();
 								}													
