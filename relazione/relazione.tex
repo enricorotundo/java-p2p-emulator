@@ -30,15 +30,18 @@ BCOR5mm, % Binding correction
 
 \input{structure.tex} % Include the structure.tex file which specified the document structure and layout
 
+\usepackage{geometry}
+\geometry{margin=1.5in}
+
 \hyphenation{Fortran hy-phen-ation} % Specify custom hyphenation points in words with dashes where you would like hyphenation to occur, or alternatively, don't put any dashes in a word to stop hyphenation altogether
 
 %----------------------------------------------------------------------------------------
 %	TITLE AND AUTHOR(S)
 %----------------------------------------------------------------------------------------
 
-\title{\normalfont\spacedallcaps{Simulazione di un sistema P2P di scambio risorse - Relazione}} % The article title
+\title{\normalfont\spacedallcaps{Relazione progetto PCD}} % The article title
 
-\author{\spacedlowsmallcaps{Enrico Rotundo, 1008052}}
+\author{\spacedlowsmallcaps{a.a. 13/14 - Enrico Rotundo, 1008052}}
 
 \date{Settembre 2014} % An optional date to appear under the author(s)
 
@@ -75,17 +78,71 @@ BCOR5mm, % Binding correction
 %	ABSTRACT
 %----------------------------------------------------------------------------------------
 
-\section*{Abstract} % This section will not appear in the table of contents due to the star (\section*)
-
-\lipsum[1] % Dummy text
+\section*{Sommario} % This section will not appear in the table of contents due to the star (\section*)
+	
+	Il presente documento rappresenta la relazione del progetto per l'esame ``Programazione Concorrente \& Distribuita''. Di seguito verranno illustrate e motivate le scelte progettuali effettuate, in particolare riguardo all'architettura e alla gestione della concorrenza e distribuzione.
 
 %----------------------------------------------------------------------------------------
-%	INTRODUCTION
+%	Architettura
 %----------------------------------------------------------------------------------------
 
-\section{Introduzione}
-	 Bla bla
- 
+\section{Architettura}
+
+	\subsection{Package}
+	
+	L'architettura implementata adersice al pattern architetturale MVC\footnote{\href{http://en.wikipedia.org/wiki/Model–view–controller}{http://en.wikipedia.org/wiki/Model–view–controller}}, si compone dei seguenti packages:
+
+		\begin{itemize}
+			\item controller: contiene le interfaccie e le classi dei controller di Client e Server con relative classi di ``servizio'' come i thread demoni.
+			\item model: rappresenta lo stato dell applicazione. Il Client avrà un model di tipo ClientResources che rende disponibili metodi per interfacciarsi alle risorse disponibili ed in download. Il Server avrà un oggetto di tipo ConnectedClients e uno di tipo ConnectedServers che rappresentano, per quel Server, lo stato dei client e server connessi. Le classi del model rendono disponibili dei metodi che generano i dati da visualizzare nell'interfaccia tramite oggetti di tipo AbstractListModel. Ogni modifica allo stato dei dati notifica l'accaduto alla view.
+			\item view: contiene le classi dell'interfaccia grafica di Client e Server. Riceve le notifiche di modifica dal model e aggiorna l'interfaccia.
+			\item starter: sono le classi che si occupano di creare gli oggetti Client e Server.
+		\end{itemize}
+	 
+	\subsection{Classi}
+ 		
+ 		\subsubsection{controller}
+
+ 			\paragraph{controller.client.ClientInterface}
+ 				Interfaccia remota del client.
+ 			\paragraph{controller.client.Client}
+ 				Implementazione dell'interfaccia \emph{controller.client.ClientInterface}. Crea un oggetto Client con relativa interfaccia grafica e modello dati. Il costruttore riceve dal \emph{ClientStarter} il nome del server al quale connettersi, verrà ricercato all'indirizzo \emph{rmi://localhost/Server/}. Il client possiede un \emph{controller.client.ConnectionChecker} che testa lo stato della connessione al server e aggiorna l'interfaccia in caso di disconnesione. Il client possiede un \
+ 			\paragraph{controller.client.ConnectionChecker}
+ 			\paragraph{controller.client.DownloadScheduler}
+ 			\paragraph{controller.client.PartDownloader}
+
+
+ 			\paragraph{controller.server.ServerInterface}
+ 			\paragraph{controller.server.Server}
+ 			\paragraph{controller.server.ClientChecker}
+ 			\paragraph{controller.server.ServerChecker}
+
+ 		\subsubsection{model}
+
+ 			\paragraph{model.client.ClientResources}
+
+ 			\paragraph{model.server.ConnectedClients}
+ 			\paragraph{model.server.ConnectedServers}
+
+ 			\paragraph{model.share.Resource}
+
+ 		\subsubsection{view}
+
+ 			\paragraph{view.AbstractBasicFrame}
+ 			\paragraph{view.ClientFrame}
+ 			\paragraph{view.ServerFrame}
+
+
+ 		\subsubsection{starter}
+
+ 			\paragraph{starter.ClientStarter}
+ 			\paragraph{starter.ServerStarter}
+
+%----------------------------------------------------------------------------------------
+%	Concorrenza \& distribuzione
+%----------------------------------------------------------------------------------------
+
+\section{Concorrenza \& distribuzione}
 
 
 \end{document}
