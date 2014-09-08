@@ -22,7 +22,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 	private static final String HOST = "localhost";
 	public static final String URL_STRING = "rmi://" + HOST + "/Server/";
 	private final String serverNameString;
-	private final ServerFrame gui; // VIEW
+	private ServerFrame gui; // VIEW
 
 	/**** RISORSE CONDIVISE DA SINCRONIZZARE *****/
 	private final ConnectedClients connectedClients = new ConnectedClients(); // MODEL
@@ -38,11 +38,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 		super();
 		
 		serverNameString = paramServerName;
-		// creo gui
-		gui = new ServerFrame(paramServerName, connectedClients, connectedServers);
-		// dico al MODEL chi e' il suo Observer
-		this.connectedClients.addObserver(gui);
-		this.connectedServers.addObserver(gui);
+		
 		
 		// set the java.rmi.server.hostname property to tell the RMI Registry which hostname or IP Adress to return in its RMI URLs: http://stackoverflow.com/questions/11343132/rmi-responding-very-slow
 		String ipAddress = "127.0.0.1"; //Local IP address 
@@ -66,9 +62,14 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 		clientsChecker.start();
 		serversChecker.start();
 		
-		// mostra gui
+		// crea e mostra gui
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
+				// creo gui
+				gui = new ServerFrame(paramServerName, connectedClients, connectedServers);
+				// dico al MODEL chi e' il suo Observer
+				connectedClients.addObserver(gui);
+				connectedServers.addObserver(gui);
 		        gui.setVisible(true);
 		    }
 		});

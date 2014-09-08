@@ -32,8 +32,8 @@ public class ClientFrame extends AbstractBasicFrame implements Observer {
 	private ClientResources clientResources; // MODEL
 	private Client clientController; // CONTROLLER fa da action listener dei buttons
 
-	private JList resourcesList;
-	private JList downloadsList;
+	private JList resourcesList = new JList();;
+	private JList downloadsList = new JList();;
 
 	public ClientFrame(final String s, final ClientResources resources, final Client clientController) {
 		super(s);
@@ -78,7 +78,6 @@ public class ClientFrame extends AbstractBasicFrame implements Observer {
 		resourcesPanel.setOpaque(true);
 		resourcesPanel.setBorder(BorderFactory.createTitledBorder("Entire Resources"));
 		resourcesPanel.setLayout(new BorderLayout());
-		resourcesList = new JList();
 		updateResourceList();
 		resourcesList.setPreferredSize(new Dimension(getWidth() / 2 - 80, 270));
 		final JScrollPane areaScrollPane = new JScrollPane(resourcesList);
@@ -93,7 +92,6 @@ public class ClientFrame extends AbstractBasicFrame implements Observer {
 		downloadQueuePanel.setOpaque(true);
 		downloadQueuePanel.setBorder(BorderFactory.createTitledBorder("Download queue"));
 		downloadQueuePanel.setLayout(new BorderLayout());
-		downloadsList = new JList();
 		updateDownloadList();
 		downloadsList.setPreferredSize(new Dimension(getWidth() / 2 - 80, 270));
 		final JScrollPane areaScrollPane1 = new JScrollPane(downloadsList);

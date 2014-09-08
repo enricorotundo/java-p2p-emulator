@@ -10,6 +10,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 
 import model.server.ConnectedClients;
 import model.server.ConnectedServers;
@@ -19,8 +20,8 @@ public class ServerFrame extends AbstractBasicFrame implements Observer {
 	private static final long serialVersionUID = -7319784823079373838L;
 	private final JPanel connectedClientsPanel = new JPanel();
 	private final JPanel connectedServersPanel = new JPanel();
-	private final JList<String> connectedClientsList;
-	private final JList<String> connectedServersList;
+	private final JList<String> connectedClientsList = new JList<String>();
+	private final JList<String> connectedServersList = new JList<String>();
 	private final JScrollPane areaScrollPaneClients;
 	private final JScrollPane areaScrollPaneServers;
 
@@ -37,12 +38,6 @@ public class ServerFrame extends AbstractBasicFrame implements Observer {
 
 		topPanel = new JPanel();
 		topPanel.setOpaque(true);
-		
-		// init JLists
-		connectedClientsList = new JList<String>();
-		updateConnectedClients();
-		connectedServersList = new JList<String>();
-		updateConnectedServers();
 
 		// init Panes
 		areaScrollPaneClients = new JScrollPane(connectedClientsList);
@@ -77,17 +72,35 @@ public class ServerFrame extends AbstractBasicFrame implements Observer {
 	// chiamato da model.server.ConnectedClients  al quale chiede i dati da visualizzare
 	public final void updateConnectedClients() {	
 		// chiamare model.ConnectedClients.getConnectedClientsModel();	
-		if (connectedClients.getConnectedClientsDefaultListModel().size() > 0) {
-			connectedServersList.setModel(connectedClients.getConnectedClientsDefaultListModel());						
-		}
+		try {
+				SwingUtilities.invokeAndWait(new Runnable() {
+					@Override
+					public void run() {
+						synchronized (connectedClientsList) {
+							connectedClientsList.setModel(connectedClients.getConnectedClientsDefaultListModel());									
+						}
+					}
+				});
+		} catch (Exception e) {
+			e.printStackTrace();
+		}		
 	}
 	
 	// chiamato da model.server.ConnectedServers al quale chiede i dati da visualizzare
 	public final void updateConnectedServers() {
 		// chiamare model.ConnectedServers.getConnectedServersModel();
-		if (connectedServers.getConnectedServersModel().size() > 0) {
-			connectedServersList.setModel(connectedServers.getConnectedServersModel());						
-		}
+		try {
+				SwingUtilities.invokeAndWait(new Runnable() {
+					@Override
+					public void run() {
+						synchronized (connectedServersList) {
+							connectedServersList.setModel(connectedServers.getConnectedServersModel());									
+						}
+					}
+				});
+		} catch (Exception e) {
+			e.printStackTrace();
+		}	
 	}
 
 	// invocato quando il MODEL viene modificato -> aggiorna la VIEW

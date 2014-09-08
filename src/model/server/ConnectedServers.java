@@ -15,13 +15,12 @@ public class ConnectedServers  extends Observable {
 	private static final long serialVersionUID = 3312651043157668857L;
 	private Vector<ServerInterface> connectedServers = new Vector<ServerInterface>();
 	
-	
 	// chiamato da view.ServerFrame.updateConnectedServers;
 	public DefaultListModel getConnectedServersModel() {
 		final DefaultListModel modelConnectedServers = new DefaultListModel();
 		synchronized (connectedServers) {
 			try {
-			for (ServerInterface oneConnectedServer : connectedServers) {
+				for (ServerInterface oneConnectedServer : connectedServers) {
 					modelConnectedServers.addElement(oneConnectedServer.getServerNameString());
 				}
 			} catch (RemoteException e) {

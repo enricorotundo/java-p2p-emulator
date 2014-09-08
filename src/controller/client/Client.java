@@ -36,7 +36,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 	private AtomicInteger currentDownloadsNumber = new AtomicInteger(0);
 	private final Integer maxDownloadCapacity;
 	private final ClientResources resourceModel; // MODEL
-	private final ClientFrame gui; // VIEW
+	private ClientFrame gui; // VIEW
 	private final ConnectionChecker connectionChecker;
 	
 	public Client(final String clientName, final String serverName, int maxDownloadCapacity, final ClientResources argResources) throws RemoteException {
@@ -44,15 +44,6 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 		this.serverName = serverName;
 		this.maxDownloadCapacity = maxDownloadCapacity;
 		this.resourceModel = argResources;
-		gui = new ClientFrame(clientName + "@" + serverName, resourceModel, this);
-	
-		// dico al MODEL chi e' il suo Observer
-		this.resourceModel.addObserver(gui);
-		// mi connetto subito al server 
-		connectToServer();
-		// avvio il thread che controlla lo status della connessione tra me Client e il mio Server
-		connectionChecker = new ConnectionChecker(connectionStatusUp, serverName, gui);
-		connectionChecker.start();
 		
 		// quando chiudo il client mi disconnetto dal server
 		final ClientInterface thisClientInterface = this;
@@ -73,10 +64,24 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Acti
 			}
 		});
 		
-		// mostra gui
+		// avvio il thread che controlla lo status della connessione tra me Client e il mio Server
+		connectionChecker = new ConnectionChecker(connectionStatusUp, serverName, gui);
+		connectionChecker.start();
+		
+		final Client thisClient = this;
+		// creo mostra gui
 		SwingUtilities.invokeLater(new Runnable() {
 		    public void run() {
+		    	gui = new ClientFrame(clientName + "@" + serverName, resourceModel, thisClient);
+				// dico al MODEL chi e' il suo Observer
+				resourceModel.addObserver(gui);
 		        gui.setVisible(true);
+		        // mi connetto subito al server 
+				try {
+					connectToServer();
+				} catch (RemoteException e) {
+					System.out.println("Connection to server error.");
+				}
 		    }
 		});
 	}

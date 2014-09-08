@@ -12,7 +12,6 @@ import controller.client.Client;
 import controller.client.ClientInterface;
 import controller.server.ServerInterface;
 
-
 public class ConnectedClients extends Observable {
 
 	private static final long serialVersionUID = 1147723973129182931L;
@@ -24,7 +23,7 @@ public class ConnectedClients extends Observable {
 		synchronized (connectedClients) {
 			try {
 				for (ClientInterface oneConnectedClient : connectedClients) {
-						modelConnectedClients.addElement(oneConnectedClient.getClientName());
+					modelConnectedClients.addElement(oneConnectedClient.getClientName());
 				}			
 			} catch (RemoteException e) {
 				e.printStackTrace();
