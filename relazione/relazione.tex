@@ -133,12 +133,15 @@ BCOR5mm, % Binding correction
 \section{Concorrenza}
 
 	\subsection{Scaricamento risorsa}
+	Il client scarica al più una risorsa alla volta grazie al controllo effettuato in \emph{performSearch} di Client controller. La fornitura concorrente di parti di risorse possedute è garantita lato server dalla libreria RMI e dai lock sui dati a livello del model. Il download di una parte è simulato dalla una \emph{sleep} nel metodo client remoto \textit{download(string)} per un tempo pari a \textbf{Client.UPLOAD\_TIME}. Il client richiedente mantiene una lista di client dai quali sta scaricando in modo da poter controllare di scaricare al più da un client. 
 
+	\subsection{Comunicazioni}
+	Le richieste di connessione, disconnessione e ricerca possesori risorse sono tutte protette da sincronizzazione, le prime due sull'oggetto \textit{clientsMonitor} mentre l'ultima su \textit{serversMonitor} a livello di controller, sono ulteriormente sincronizzate a livello model sui rispettivi Vector.
 
 \section{Distribuzione}
 
-	\subsection{}
-
-	\subsection{}
+	Le parti di risorsa sono scambiate esclusivamente tra client, i server non detengono risorse e non fanno da tramite durante gli scambi; questo è facilmente verificabile chiudendo i server durante uno scambio parti, si noterà che lo scambio proseguirà indistrubato. Le comunicazioni server-client e server-server riguardano solamente riferimenti remoti a oggetti client e/o server, in base alle necessità.
+	I riferimenti remoti ai client non vengono inseriti in regisrti pubblici, questo accade solamente per i server.
+	La robustezza viene garantita dalla gestione dei fallimenti delle entità del sistema che si presenta sotto forma di eccezioni, tali occorrenze vengono stampate nell'area di log della gui. I messaggi degli eventi lanciati dai thread demoni di supporto vengono generalmente inviati a \emph{System.out}.
 
 \end{document}
