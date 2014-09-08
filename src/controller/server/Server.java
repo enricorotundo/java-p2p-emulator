@@ -144,7 +144,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 				gui.appendLogEntry("Looking for " + paramResourceName + " in " + cli.getClientName() + "@" + serverNameString);
 				
 				// chiedo al client se possiede la risorsa
-				if (cli.checkResourcePossession(paramResourceName, clientCaller + "@" + serverNameString)) {
+				if (cli.checkResourcePossession(paramResourceName, clientCaller)) {
 					
 								try {
 									gui.appendLogEntry(cli.getClientName() + "@" + serverNameString + " has " + paramResourceName);
