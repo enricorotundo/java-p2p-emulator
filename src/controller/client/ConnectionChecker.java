@@ -36,9 +36,7 @@ class ConnectionChecker extends Thread {
 						remoteServerInterface.getServerUrl();
 					}						
 				}
-			} catch (MalformedURLException | RemoteException | InterruptedException e) {
-				e.printStackTrace();
-			} catch (final NotBoundException e) {
+			} catch (final NotBoundException | MalformedURLException | RemoteException | InterruptedException e) {
 				
 				// qui il server a cui ero connesso non esiste piu'
 				synchronized (connectionStatusUp) {
