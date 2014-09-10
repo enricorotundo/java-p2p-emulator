@@ -21,7 +21,6 @@ public class ClientStarter {
 				// creo il controller.client.Client
 				final Client clientController = new Client(args[0], args[1], Integer.parseInt(args[2]), argResources);
 			} catch (final Exception e) {
-				e.printStackTrace();
 			}
 		}
 	}

@@ -27,7 +27,6 @@ public class ServerStarter {
 					System.out.println("Namesake server running!");
 				}
 			} catch (final Exception e) {
-				e.printStackTrace();
 			}
 		}
 	}

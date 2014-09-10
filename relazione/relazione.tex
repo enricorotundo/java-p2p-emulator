@@ -93,7 +93,7 @@ BCOR5mm, % Binding correction
 	L'architettura implementata adersice al pattern architetturale MVC\footnote{\href{http://en.wikipedia.org/wiki/Model–view–controller}{http://en.wikipedia.org/wiki/Model–view–controller}}, si compone dei seguenti packages:
 
 		\begin{itemize}
-			\item \textbf{controller:} contiene le interfaccie e le classi dei controller di Client e Server con relative classi di ``servizio'' come i thread demoni.
+			\item \textbf{controller:} contiene le interfaccie e le classi dei controller di Client e Server con le relative classi di ``servizio'' come i thread demoni.
 			\item \textbf{model:} rappresenta lo stato dell applicazione. Le classi del model rendono disponibili dei metodi che generano i dati da visualizzare nell'interfaccia tramite oggetti di tipo AbstractListModel. Ogni modifica allo stato dei dati notifica l'accaduto alla view.
 			\item \textbf{view:} contiene le classi dell'interfaccia grafica di Client e Server. Riceve le notifiche di modifica dal model e aggiorna l'interfaccia.
 			\item \textbf{starter:} sono le classi che si occupano di creare gli oggetti Client e Server.
@@ -111,16 +111,16 @@ BCOR5mm, % Binding correction
  		\subsubsection{controller.server}
 
  			L'iterfaccia remota del server è \textbf{controller.server.ServerInterface}. L'implementazione dell'interfaccia è \textbf{controller.server.Server}, essa rappresenta un oggetto Server con riferimenti a interfaccia grafica e modello dati. Il costruttore riceve dal \textbf{ServerStarter} il nome che il server deve avere. Il server viene registrato all'indirizzo \textbf{\href{rmi://localhost/Server/nome_server}{rmi://localhost/Server/}} su cui rende pubblicamente disponibili sia i metodi remoti per la connessione/disonessione di client, sia i metodi remoti \emph{getResourceOwners(String)} e \emph{getLocalResourceOwners(String)}.
- 			Il primo viene invocato in prima battuta dal client C richiedente la risorsa, il server di appartenza S chiama quindi \emph{getLocalResourceOwners(String)} per ottenere le risorse dei client a lui registrati e, per ogni server registrato nella rete S', chiama \emph{getResourceOwners(String)} che risponderà con le risorse dei client registrati presso S'. In questo modo viene generato al bisogno l'elenco dei client possessori della risorsa richiesta. Questa soluzione è ottimale in quanto efficiente (evita il \emph{polling}\footnote{\href{http://en.wikipedia.org/wiki/Polling_(computer_science)}{http://en.wikipedia.org/wiki/Polling\_(computer\_science)}} che richiederebbe ripetutamente lock su risorse remote del client) e consistente (assicurata dai client con lock sulle risorse disponibili, dai server con lock sulla lista costantemente aggiornata dei client connessi (\textbf{controller.server.ClientChecker})). Ogni oggetto Server gode di una lista di server contattabili mantenuta da \textbf{controller.server.ServerChecker}.
+ 			Il primo viene invocato in prima battuta dal client C richiedente la risorsa, il server di appartenza S chiama quindi \emph{getLocalResourceOwners(String)} per ottenere le risorse dei client a lui registrati e, per ogni server registrato nella rete S', chiama \emph{getResourceOwners(String)} che risponderà con le risorse dei client registrati presso S'. In questo modo viene generato al bisogno l'elenco dei client possessori della risorsa richiesta. Questa soluzione è ottimale in quanto efficiente (evita il \emph{polling}\footnote{\href{http://en.wikipedia.org/wiki/Polling_(computer_science)}{http://en.wikipedia.org/wiki/Polling\_(computer\_science)}} che causerebbe  sincronizzazione sulle risorse del client) e consistente (assicurata dai client con lock sulle risorse disponibili, dai server con lock sulla lista costantemente aggiornata dei client connessi (\textbf{controller.server.ClientChecker})). Ogni oggetto Server gode di una lista di server contattabili mantenuta da \textbf{controller.server.ServerChecker}.
 
  		\subsubsection{model.client}
  			
- 			Il Client avrà un model di tipo \textbf{model.client.ClientResources} che rende disponibili metodi per interfacciarsi alle risorse disponibili ed in download.
+ 			Il Client ha un model di tipo \textbf{model.client.ClientResources} che rende disponibili metodi per interfacciarsi alle risorse disponibili ed in download.
  			La classe \textbf{model.share.Resource} rappresenta la singola risorsa che possidono i client.
  			
  		\subsubsection{model.server}
 
- 			Il Server avrà un oggetto di tipo \textbf{model.server.ConnectedClients} e uno di tipo \textbf{model.server.ConnectedServers} che rappresentano, per quel Server, lo stato dei client e server connessi.
+ 			Il Server ha un oggetto di tipo \textbf{model.server.ConnectedClients} e uno di tipo \textbf{model.server.ConnectedServers} che rappresentano, per quel Server, lo stato dei client e server connessi.
 
  		\subsubsection{view}
 
@@ -133,10 +133,10 @@ BCOR5mm, % Binding correction
 \section{Concorrenza}
 
 	\subsection{Scaricamento risorsa}
-	Il client scarica al più una risorsa alla volta grazie al controllo effettuato in \emph{performSearch()} di Client controller. La fornitura concorrente di parti di risorse possedute è consistente grazie ai lock sui dati a livello del server model. Il download di una parte è simulato dalla una \emph{sleep} nel metodo client remoto \textit{download(string)} per un tempo pari a \textbf{Client.UPLOAD\_TIME}. Il client richiedente mantiene una lista di client dai quali sta scaricando in modo da poter controllare di scaricare contemporaneamente al più da un client. 
+	Il client scarica al più una risorsa alla volta grazie al controllo effettuato in \emph{performSearch()} di Client controller. La fornitura concorrente di parti di risorse possedute è consistente grazie alla sincronizzazione sui dati a livello del server model. Il download di una parte è simulato da una \emph{sleep} nel metodo client remoto \textit{download(string)} per un tempo pari a \textbf{Client.UPLOAD\_TIME}. Il client richiedente mantiene una lista di client dai quali sta scaricando in modo da poter controllare di scaricare contemporaneamente al più da un client. 
 
 	\subsection{Comunicazioni}
-	Le richieste di connessione, disconnessione e ricerca possesori risorse sono tutte protette da sincronizzazione, le prime due sull'oggetto \textit{clientsMonitor} mentre l'ultima su \textit{serversMonitor} a livello di controller, sono ulteriormente sincronizzate a livello model sui rispettivi Vector.
+	Le richieste di connessione, disconnessione e ricerca possessori risorse sono tutte protette da sincronizzazione, le prime due sull'oggetto \textit{clientsMonitor} mentre l'ultima su \textit{serversMonitor} a livello di controller, sono ulteriormente sincronizzate a livello model sui rispettivi Vector.
 
 %----------------------------------------------------------------------------------------
 %	Distribuzione
@@ -145,7 +145,7 @@ BCOR5mm, % Binding correction
 \section{Distribuzione}
 
 	Le parti di risorsa sono scambiate esclusivamente tra client, i server non detengono risorse e non fanno da tramite durante gli scambi; questo è facilmente verificabile chiudendo i server durante uno scambio parti, si noterà che lo scambio proseguirà indistrubato. Le comunicazioni server-client e server-server riguardano solamente riferimenti remoti a oggetti client e/o server, in base alle necessità.
-	I riferimenti remoti ai client non vengono inseriti in regisrti pubblici, questo accade solamente per i server.
+	I riferimenti remoti ai client non vengono inseriti in alcun registro pubblico, questo accade solamente per i server.
 	La robustezza viene garantita dalla gestione dei fallimenti delle entità del sistema che si presentano sotto forma di eccezioni, tali occorrenze vengono stampate nell'area di log della gui. I messaggi degli eventi lanciati dai thread demoni vengono generalmente inviati a \emph{System.out}. \textbf{NB:} se un client che sta inviando una parte si disconette, il ricevente visualizza il messaggio d'errore in \emph{System.out} e non nella log area della gui.
 
 %----------------------------------------------------------------------------------------
@@ -164,8 +164,8 @@ BCOR5mm, % Binding correction
 			\item  \textbf{make start}
 		\end{enumerate}
 
-	A questo punto l'utente visualizzerà le interfaccie dei client e dei server. I client, all'avvio si connettono automaticamente al server prescelto, se questo non dovesse essere disponibile verrà visualizzato un messaggio; sarà possibile riconettersi traite l'apposito bottone.
-	Per scaricare un risorsa è necessario e sufficiente compilare il campo testuale sito nell'interfaccia del client e cliccare con il mouse sul bottone di ricerca. Il campo testuale è di tipo \emph{JFormattedTextField} ed è configurato per accettare stringhe di lunghezza 3 validate secondo la maschera ``\textbf{U \#}''  di tipo  MaskFormatter\footnote{\href{http://docs.oracle.com/javase/7/docs/api/javax/swing/text/MaskFormatter.html}{http://docs.oracle.com/javase/7/docs/api/javax/swing/text/MaskFormatter.html}}, U equivale a [A-Z], \# equivale a [0-9].
+	A questo punto l'utente visualizzerà le interfaccie dei client e dei server. I client, all'avvio si connettono automaticamente al server prescelto, se questo non dovesse essere disponibile verrà visualizzato un messaggio; sarà possibile riconnettersi tramite l'apposito bottone.
+	Per scaricare una risorsa è necessario e sufficiente compilare il campo testuale sito nell'interfaccia del client e cliccare con il mouse sul bottone di ricerca. Il campo testuale è di tipo \emph{JFormattedTextField} ed è configurato per accettare stringhe di lunghezza 3 validate secondo la maschera ``\textbf{U \#}'' di tipo  MaskFormatter\footnote{\href{http://docs.oracle.com/javase/7/docs/api/javax/swing/text/MaskFormatter.html}{http://docs.oracle.com/javase/7/docs/api/javax/swing/text/MaskFormatter.html}}, U equivale a [A-Z], \# equivale a [0-9]\footnote{Per semplificare le operazioni di inserimento e validazione degli input è stato deliberamaente scelto di vincolare il nome risorsa alle sole lettere maisucole dell'alfabeto e il numero di parti ad una cifra.}.
 	Il controller client controlla che il client sia connesso, che non ci sia una risorsa in download, che la risorsa non sia in possesso al client, che vi sia almeno un solo possessore della risorsa connesso al network. Se tutti questi controlli restituiscono esito positivo viene avviato il thread che gestisce il download della risorsa, è possibile monitorare l'andamento del download tramite la lista sulla destra. Una volta completato il download la risorsa viene aggiunta tra quelle disponibili. Se durante un download tutti i client possessori dovessero risultare irraggiungibili, dopo un paio di secondi verrà annullato il download.
 
 \end{document}
